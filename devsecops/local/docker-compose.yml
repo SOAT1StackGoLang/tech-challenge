@@ -7,12 +7,12 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: food-service
+      POSTGRES_DB: lanchonete
     ports:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./initdb:/docker-entrypoint-initdb.d
+      - ../../arquivos/ModelagemDados/scripts/:/docker-entrypoint-initdb.d/
 
   app:
     build:
@@ -29,7 +29,7 @@ services:
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
-      DB_NAME: food-service
+      DB_NAME: lanchonete
 
 volumes:
   db-data:
