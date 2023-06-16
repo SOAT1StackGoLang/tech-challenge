@@ -30,19 +30,19 @@ case "$1" in
     ;;
   start-app)
     # Start the application container
-    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d app
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d app --build
     sleep 5
     $compose_cmd -f ../devsecops/local/docker-compose.yml logs app
     ;;
   build-app)
     # Build and start the application container
-    $compose_cmd -f ../devsecops/local/docker-compose.yml up --build -d app
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d app --build
     sleep 5
     $compose_cmd -f ../devsecops/local/docker-compose.yml logs app
     ;;
   start-all)
     # Start all containers
-    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d --build
     sleep 5
     $compose_cmd -f ../devsecops/local/docker-compose.yml logs db &
     $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
@@ -51,13 +51,23 @@ case "$1" in
     # Destroy all containers and their volumes
     $compose_cmd -f ../devsecops/local/docker-compose.yml down -v
     ;;
+  recreate-all)
+    # Destroy all containers and their volumes
+    $compose_cmd -f ../devsecops/local/docker-compose.yml down -v
+    # Start all containers
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d --build
+    sleep 5
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs db &
+    sleep 2
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
+    ;;
   logs-all)
     # Show logs for all containers
     if $compose_cmd -f ../devsecops/local/docker-compose.yml ps | grep -q "local_db_1"; then
-      $compose_cmd -f ../devsecops/local/docker-compose.yml logs db &
+      $compose_cmd -f ../devsecops/local/docker-compose.yml logs -f db &
     fi
     if $compose_cmd -f ../devsecops/local/docker-compose.yml ps | grep -q "local_app_1"; then
-      $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
+      $compose_cmd -f ../devsecops/local/docker-compose.yml logs -f app &
     fi
     ;;
   *)
