@@ -15,18 +15,21 @@ services:
       - ./initdb:/docker-entrypoint-initdb.d
 
   app:
-    build: .
+    build:
+      context: ../../
+      dockerfile: devsecops/local/code/Dockerfile
     restart: always
     ports:
-      - "8080:8080"
+      - "8000:8000"
     depends_on:
       - db
     environment:
+      PORT: 8000
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
-      DB_NAME: mydb
+      DB_NAME: food-service
 
 volumes:
   db-data:
