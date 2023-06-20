@@ -2,7 +2,14 @@ module github.com/SOAT1StackGoLang/tech-challenge
 
 go 1.20
 
-require github.com/gin-gonic/gin v1.9.1
+require (
+	github.com/Boostport/migration v1.1.2
+	github.com/Boostport/migration/driver/mysql v1.1.2
+	github.com/gin-gonic/gin v1.9.1
+	github.com/google/uuid v1.3.0
+	github.com/lib/pq v1.10.9
+	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc
+)
 
 require (
 	github.com/bytedance/sonic v1.9.1 // indirect
@@ -12,6 +19,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
