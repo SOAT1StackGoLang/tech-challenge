@@ -1,16 +1,22 @@
 package repositories
 
 import (
+	"database/sql"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/type/decimal"
+	"time"
 )
 
 type User struct {
-	ID       uuid.UUID `gorm:"id,primaryKey"`
-	Document string    `gorm:"document"`
-	Name     string    `gorm:"name"`
-	Email    string    `gorm:"email"`
+	ID        uuid.UUID    `gorm:"id,primaryKey"`
+	CreatedAt time.Time    `gorm:"created_at"`
+	UpdatedAt sql.NullTime `gorm:"updated_at"`
+	DeletedAt sql.NullTime `gorm:"deleted_at"`
+	Document  string       `gorm:"document"`
+	Name      string       `gorm:"name"`
+	Email     string       `gorm:"email"`
+	IsAdmin   bool         `gorm:"is_admin"`
 }
 
 func (u *User) toDomain() *domain.User {

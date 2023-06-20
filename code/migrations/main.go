@@ -8,15 +8,16 @@ import (
 	"github.com/Boostport/migration/driver/mysql"
 )
 
+//go:embed files/*.sql
 var migFs embed.FS
 
 func main() {
-	db, err := sql.Open("mysql", helpers.BuildPostgresConnUrl())
+	db, err := sql.Open("postgres", helpers.BuildPostgresConnUrl())
 	if err != nil {
 		panic(err)
 	}
 
-	driver, err := mysql.NewFromDB(db)
+	driver, err := mysql.NewFromDB(db) //TODO switch to postgres
 	if err != nil {
 		panic(err)
 	}
