@@ -26,12 +26,13 @@ func NewUsersUseCase(userRepo ports.UsersRepository) ports.UsersUseCase {
 	return &usersUseCase{userRepo: userRepo, logger: log}
 }
 
-func (u usersUseCase) IsUserAdmin(ctx context.Context, document string) (bool, error) {
-	err := u.userRepo.IsUserAdmin(ctx, document)
+func (u usersUseCase) IsUserAdmin(ctx context.Context, id uuid.UUID) (bool, error) {
+	isAdmin, err := u.userRepo.IsUserAdmin(ctx, id)
 	if err != nil {
 		return false, err
 	}
-	return true, err
+
+	return isAdmin, err
 }
 
 func (u usersUseCase) CreateUser(ctx context.Context, name, document, email string) (*domain.User, error) {
@@ -46,6 +47,7 @@ func (u usersUseCase) CreateUser(ctx context.Context, name, document, email stri
 		)
 		return nil, err
 	}
+
 	return user, err
 }
 
