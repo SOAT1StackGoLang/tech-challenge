@@ -33,13 +33,13 @@ compile:
 #--ldflags "-X 'main.Version=v0.0.3' -X 'main.BuildTime=$(date "+%H:%M:%S--%d/%m/%Y")' -X 'main.GitCommit=$(git rev-parse --short HEAD)'" \
 
 docker:
-    LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
     ARG EARTHLY_TARGET_TAG_DOCKER
     ARG TARGETPLATFORM
     ARG TARGETARCH
     ARG TARGETVARIANT
     FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
     #FROM --platform=$TARGETPLATFORM golang:alpine
+    LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
     WORKDIR /
     COPY \
         --platform=linux/amd64 \
