@@ -45,4 +45,4 @@ docker:
         (+compile/app --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /app
     ENV GIN_MODE=release
     CMD ["/app"]
-    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_TARGET_TAG_DOCKER
+    SAVE IMAGE --push ghcr.io/SOAT1StackGoLang/tech-challenge:$EARTHLY_TARGET_TAG_DOCKER
