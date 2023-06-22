@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/Boostport/migration v1.1.2
 	github.com/Boostport/migration/driver/mysql v1.1.2
+	github.com/emicklei/go-restful/v3 v3.10.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.0
 	github.com/lib/pq v1.10.9

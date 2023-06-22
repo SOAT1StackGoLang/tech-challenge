@@ -10,5 +10,5 @@ import (
 type UsersUseCase interface {
 	CreateUser(ctx context.Context, name, document, email string) (*domain.User, error)
 	ValidateUser(ctx context.Context, document string) (uuid.UUID, error)
-	IsUserAdmin(ctx context.Context, document string) (bool, error)
+	IsUserAdmin(ctx context.Context, id uuid.UUID) (bool, error)
 }
