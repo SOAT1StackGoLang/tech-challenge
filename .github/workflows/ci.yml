@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}
+      IMAGE_NAME: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
       FORCE_COLOR: 1
     steps:
     - uses: earthly/actions/setup-earthly@v1
