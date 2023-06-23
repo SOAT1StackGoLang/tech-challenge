@@ -8,21 +8,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewLogger() *zap.SugaredLogger {
-	logger, _ := zap.NewProduction()
-	return logger.Sugar()
-}
-
-var (
-	log = NewLogger()
-)
-
 type usersUseCase struct {
 	logger   *zap.SugaredLogger
 	userRepo ports.UsersRepository
 }
 
-func NewUsersUseCase(userRepo ports.UsersRepository) ports.UsersUseCase {
+func NewUsersUseCase(userRepo ports.UsersRepository, log *zap.SugaredLogger) ports.UsersUseCase {
 	return &usersUseCase{userRepo: userRepo, logger: log}
 }
 
@@ -40,7 +31,7 @@ func (u usersUseCase) CreateUser(ctx context.Context, name, document, email stri
 
 	err := u.userRepo.InsertUser(ctx, user)
 	if err != nil {
-		log.Errorw(
+		u.logger.Errorw(
 			"failed inserting user",
 			zap.String("document", document),
 			zap.Error(err),
@@ -54,7 +45,7 @@ func (u usersUseCase) CreateUser(ctx context.Context, name, document, email stri
 func (u usersUseCase) ValidateUser(ctx context.Context, document string) (uuid.UUID, error) {
 	uID, err := u.userRepo.ValidateUser(ctx, document)
 	if err != nil {
-		log.Errorw(
+		u.logger.Errorw(
 			"failed validating user",
 			zap.String("document", document),
 			zap.Error(err),

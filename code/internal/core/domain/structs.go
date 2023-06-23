@@ -30,27 +30,16 @@ func NewUser(code string, name string, email string) *User {
 	return &User{ID: id, Document: code, Name: name, Email: email}
 }
 
-type Category struct {
-	ID   uuid.UUID
-	Name string
-}
-
-func NewCategory(name string) *Category {
-	id := uuid.New()
-	return &Category{ID: id, Name: name}
-}
-
 type Product struct {
 	ID          uuid.UUID
-	CategoryID  Category
+	Category    string
 	Name        string
-	Image       string
 	Description string
 	Price       string
 }
 
-func NewProduct(categoryID Category, name string, image string, description string, price string) *Product {
-	return &Product{CategoryID: categoryID, Name: name, Image: image, Description: description, Price: price}
+func NewProduct(category, name, description, price string) *Product {
+	return &Product{Category: category, Name: name, Description: description, Price: price}
 }
 
 type Order struct {

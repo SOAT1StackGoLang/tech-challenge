@@ -1,36 +1,32 @@
 package helpers
 
-//
-//var (
-//	postgresUsername, postgresPassword, postgresHost string
-//	postgresPort                                     int
-//)
-//
-//type PostgresParams struct {
-//	Host, User, Pwd, DbName string
-//	Port                    int
-//}
-//
-//func InitPostgresWithFlagSet(flagSet *flag.FlagSet) {
-//	flagSet.StringVar(&postgresUsername, "postgresusr", GetEnvOrDefault("DB_USER", "postgres"), "")
-//	flagSet.StringVar(&postgresUsername, "postgrespass", GetEnvOrDefault("DB_PASSWORD", "postgres"), "")
-//	flagSet.StringVar(&postgresUsername, "postgresusr", GetEnvOrDefault("DB_USER", "postgres"), "")
-//	flagSet.StringVar(&postgresUsername, "postgresusr", GetEnvOrDefault("DB_USER", "postgres"), "")
-//}
-//
-//func GetEnvOrDefault(key, defaultValue string) string {
-//	val := os.Getenv(key)
-//	if val == "" {
-//		return defaultValue
-//	}
-//	return val
-//}
-//
-//func GetEnvOrDefault(key string, defaultValue int) int {
-//	val := os.Getenv(key)
-//	if val == "" {
-//		return defaultValue
-//	}
-//	i, _ := strconv.ParseInt(val, 10, 32)
-//	return int(i)
-//}
+import (
+	"fmt"
+	"os"
+	"strconv"
+)
+
+var (
+	postgresUsername string
+	postgresPassword string
+	postgresHost     string
+	postgresPort     int
+	postgresDbName   string
+)
+
+func ReadPgxConnEnvs() {
+	postgresUsername = os.Getenv("DB_USER")
+	postgresPassword = os.Getenv("DB_PASSWORD")
+	postgresHost = os.Getenv("DB_HOST")
+	port, _ := strconv.ParseInt(os.Getenv("DB_PORT"), 10, 64)
+	postgresPort = int(port)
+	postgresDbName = os.Getenv("DB_NAME")
+}
+
+func ToDsnWithDbName() string {
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", postgresHost, postgresUsername, postgresPassword, postgresDbName, postgresPort)
+}
+
+func ToDsn() string {
+	return fmt.Sprintf("host=%s user=%s password=%s port=%d sslmode=disable", postgresHost, postgresUsername, postgresPassword, postgresPort)
+}

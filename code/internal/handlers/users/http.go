@@ -35,9 +35,9 @@ func NewUserHandler(
 }
 
 func (uH *UserHandler) Create(req *restful.Request, resp *restful.Response) {
-	var user *User
+	var user User
 
-	if err := req.ReadEntity(user); err != nil {
+	if err := req.ReadEntity(&user); err != nil {
 		_ = resp.WriteError(http.StatusBadRequest, err)
 		return
 	}
@@ -63,7 +63,7 @@ func (uH *UserHandler) Validate(req *restful.Request, resp *restful.Response) {
 	}
 
 	ret := map[string]string{
-		"user_id": result.String(),
+		"id": result.String(),
 	}
 
 	_ = resp.WriteAsJson(ret)
