@@ -1,8 +1,8 @@
 package users
 
 import (
+	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
-	"github.com/google/uuid"
 )
 
 type User struct {
@@ -25,16 +25,11 @@ func (u *User) fromDomain(user *domain.User) {
 
 func (u *User) toDomain() *domain.User {
 	if u == nil {
-		u = User{}
-	}
-
-	id, err := uuid.FromBytes([]byte(u.ID))
-	if err != nil {
-		return nil
+		u = &User{}
 	}
 
 	return &domain.User{
-		ID:       id,
+		ID:       helpers.SafeUUIDFromString(u.ID),
 		Document: u.Document,
 		Name:     u.Name,
 		Email:    u.Email,

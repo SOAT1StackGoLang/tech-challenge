@@ -1,28 +1,24 @@
-package migrations
+package main
 
 import (
-	"database/sql"
 	"embed"
 	"fmt"
 	"github.com/Boostport/migration"
-	"github.com/Boostport/migration/driver/mysql"
+	"github.com/Boostport/migration/driver/postgres"
+	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
+	"github.com/joho/godotenv"
 )
 
 //go:embed files/*.sql
 var migFs embed.FS
 
 func main() {
-	db, err := sql.Open("postgres", helpers.BuildPostgresConnUrl())
-	if err != nil {
-		panic(err)
-	}
+	godotenv.Load()
+	helpers.ReadPgxConnEnvs()
+	dsn := helpers.ToDsnWithDbName()
+	dir := "files"
 
-	driver, err := mysql.NewFromDB(db) //TODO switch to postgres
-	if err != nil {
-		panic(err)
-	}
-
-	dirs, err := migFs.ReadDir("sql")
+	dirs, err := migFs.ReadDir(dir)
 	if err != nil {
 		panic(fmt.Sprintf("error reading migration files from embeded: %v", err))
 	} else {
@@ -35,9 +31,13 @@ func main() {
 
 	embededSource := &migration.EmbedMigrationSource{
 		EmbedFS: migFs,
-		Dir:     "sql",
+		Dir:     dir,
 	}
 
+	driver, err := postgres.New(dsn)
+	if err != nil {
+		panic(fmt.Sprintf("driver err := %s", err))
+	}
 	applied, err := migration.Migrate(driver, embededSource, migration.Up, 0)
 	if err != nil {
 		panic(fmt.Sprintf("Error applying migrations: %s", err.Error()))

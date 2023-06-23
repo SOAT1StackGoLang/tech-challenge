@@ -1,4 +1,4 @@
-package repositories
+package postgres
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const userTable = "restaurant_users"
+const userTable = "lanchonete_users"
 
 type usersRepositoryImpl struct {
 	log *zap.SugaredLogger
@@ -45,7 +45,7 @@ func (u usersRepositoryImpl) InsertUser(ctx context.Context, user *domain.User) 
 	repUser.fromDomain(user)
 
 	err := u.db.WithContext(ctx).Table(userTable).
-		Create(repUser).Error
+		Create(&repUser).Error
 	if err != nil {
 		u.log.Errorw(
 			"failed inserting user",
@@ -58,9 +58,9 @@ func (u usersRepositoryImpl) InsertUser(ctx context.Context, user *domain.User) 
 }
 
 func (u usersRepositoryImpl) ValidateUser(ctx context.Context, document string) (uuid.UUID, error) {
-	var uID uuid.UUID
+	var user User
 	err := u.db.WithContext(ctx).Table(userTable).
-		Select("id").Where("document = ?", document).First(uID).Error
+		Select("*").Where("document = ?", document).First(&user).Error
 	if err != nil {
 		u.log.Errorw(
 			"failed validating user",
@@ -70,7 +70,7 @@ func (u usersRepositoryImpl) ValidateUser(ctx context.Context, document string) 
 		return uuid.Nil, err
 	}
 
-	return uID, nil
+	return user.ID, nil
 }
 
 func (u usersRepositoryImpl) IsUserAdmin(ctx context.Context, id uuid.UUID) (bool, error) {

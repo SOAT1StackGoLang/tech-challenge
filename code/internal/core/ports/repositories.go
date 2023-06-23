@@ -13,3 +13,11 @@ type UsersRepository interface {
 	ValidateUser(ctx context.Context, document string) (uuid.UUID, error)
 	IsUserAdmin(ctx context.Context, id uuid.UUID) (bool, error)
 }
+
+type ProductsRepository interface {
+	GetProduct(ctx context.Context, id uuid.UUID) (*domain.Product, error)
+	InsertProduct(ctx context.Context, product *domain.Product) (*domain.Product, error)
+	UpdateProduct(ctx context.Context, product *domain.Product) (*domain.Product, error)
+	DeleteProduct(ctx context.Context, uuid uuid.UUID) error
+	ListProductsByCategory(ctx context.Context, category string) ([]*domain.Product, error)
+}
