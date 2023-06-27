@@ -18,5 +18,22 @@ type ProductsUseCase interface {
 	InsertProduct(ctx context.Context, userID uuid.UUID, product *domain.Product) (*domain.Product, error)
 	UpdateProduct(ctx context.Context, userID uuid.UUID, product *domain.Product) (*domain.Product, error)
 	DeleteProduct(ctx context.Context, userID uuid.UUID, uuid uuid.UUID) error
-	ListProductsByCategory(ctx context.Context, category string) ([]*domain.Product, error)
+	ListProductsByCategory(ctx context.Context, categoryID uuid.UUID, limit, offset int) (*domain.ProductList, error)
+}
+
+type CategoriesUseCase interface {
+	GetCategory(ctx context.Context, id uuid.UUID) (*domain.Category, error)
+	InsertCategory(ctx context.Context, userID uuid.UUID, in *domain.Category) (*domain.Category, error)
+	DeleteCategory(ctx context.Context, userID, id uuid.UUID) error
+}
+
+type OrdersUseCase interface {
+	CreateOrder(ctx context.Context, userID, productID uuid.UUID) (*domain.Order, error)
+	InsertProductsIntoOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error)
+	RemoveProductFromOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error)
+	FinishOrder(ctx context.Context, userID, orderID uuid.UUID)
+}
+
+type CheckoutUseCase interface {
+	PayOrder(ctx context.Context, orderID, userID uuid.UUID)
 }

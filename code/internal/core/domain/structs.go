@@ -42,30 +42,33 @@ func NewProduct(category, name, description, price string) *Product {
 	return &Product{Category: category, Name: name, Description: description, Price: price}
 }
 
+type ProductList struct {
+	Products      []*Product
+	Limit, Offset int
+	Total         int64
+}
+
 type Order struct {
 	ID        uuid.UUID
-	User      User
-	Payment   PaymentInfo
+	OwnerID   uuid.UUID
+	PaymentID uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Status    OrderStatus
 	Items     []Product
 }
 
-func NewOrder(user User, payment PaymentInfo, createdAt time.Time, updatedAt time.Time, status OrderStatus, items []Product) *Order {
-	return &Order{User: user, Payment: payment, CreatedAt: createdAt, UpdatedAt: updatedAt, Status: status, Items: items}
+func NewOrder(ownerID uuid.UUID, payment uuid.UUID, createdAt time.Time, updatedAt time.Time, status OrderStatus, items []Product) *Order {
+	return &Order{OwnerID: ownerID, PaymentID: payment, CreatedAt: createdAt, UpdatedAt: updatedAt, Status: status, Items: items}
 }
 
-type PaymentInfo struct {
+type Category struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	OrderID   uuid.UUID
-	PaymentID uuid.UUID
-	Status    string
-	Value     float64
+	Name      string
 }
 
-func NewPaymentInfo(createdAt time.Time, updatedAt time.Time, orderID uuid.UUID, paymentID uuid.UUID, status string, value float64) *PaymentInfo {
-	return &PaymentInfo{CreatedAt: createdAt, UpdatedAt: updatedAt, OrderID: orderID, PaymentID: paymentID, Status: status, Value: value}
+func NewCategory(createdAt time.Time, updatedAt time.Time, name string) *Category {
+	return &Category{CreatedAt: createdAt, UpdatedAt: updatedAt, Name: name}
 }

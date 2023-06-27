@@ -38,6 +38,7 @@ func (u *User) fromDomain(dUser *domain.User) {
 type Product struct {
 	ID          uuid.UUID `gorm:"id,primaryKey"`
 	CreatedAt   time.Time
+	UpdatedAt   sql.NullTime
 	Name        string
 	Description string
 	Category    string
@@ -59,9 +60,15 @@ func (p *Product) fromDomain(dProd *domain.Product) {
 		p = &Product{}
 	}
 
-	decimalValue, err := decimal.NewFromString(dProd.Price)
-	if err != nil {
-		return
+	var decimalValue decimal.Decimal
+	var err error
+	if dProd.Price != "" {
+		decimalValue, err = decimal.NewFromString(dProd.Price)
+		if err != nil {
+			return
+		}
+	} else {
+		decimalValue = decimal.NewFromInt(0)
 	}
 
 	p.ID = dProd.ID
@@ -69,4 +76,51 @@ func (p *Product) fromDomain(dProd *domain.Product) {
 	p.Category = dProd.Category
 	p.Description = dProd.Description
 	p.Price = decimalValue
+}
+
+type ProductList struct {
+	products      []*domain.Product
+	limit, offset int
+	total         int64
+}
+
+type Category struct {
+	ID        uuid.UUID `gorm:"id,primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt sql.NullTime
+	Name      string
+}
+
+func (c *Category) toDomain() *domain.Category {
+	return &domain.Category{
+		ID:        c.ID,
+		CreatedAt: c.CreatedAt,
+		UpdatedAt: c.UpdatedAt.Time,
+		Name:      c.Name,
+	}
+}
+
+func (c *Category) fromDomain(in *domain.Category) {
+	if c == nil {
+		c = &Category{}
+	}
+
+	c.ID = in.ID
+	c.CreatedAt = in.CreatedAt
+	if !in.UpdatedAt.IsZero() {
+		c.UpdatedAt.Time = in.UpdatedAt
+		c.UpdatedAt.Valid = true
+	}
+	c.Name = in.Name
+
+	return
+}
+
+type Order struct {
+	ID        uuid.UUID `gorm:"id,primaryKey"`
+	OwnerID   uuid.UUID
+	PaymentID uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt sql.NullTime
+	Status    string
 }
