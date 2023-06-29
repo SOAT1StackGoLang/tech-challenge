@@ -29,7 +29,11 @@ compile:
     RUN GOARM=${VARIANT#v} CGO_ENABLED=0 go build \
         -installsuffix 'static' \
         -o compile/app cmd/web/*.go
+    RUN GOARM=${VARIANT#v} CGO_ENABLED=0 go build \
+        -installsuffix 'static' \
+        -o compile/migs cmd/migrations/*.go
     SAVE ARTIFACT compile/app /app AS LOCAL compile/app
+    SAVE ARTIFACT compile/migs /migs AS LOCAL compile/migs
 #--ldflags "-X 'main.Version=v0.0.3' -X 'main.BuildTime=$(date "+%H:%M:%S--%d/%m/%Y")' -X 'main.GitCommit=$(git rev-parse --short HEAD)'" \
 
 docker:
@@ -44,6 +48,9 @@ docker:
     COPY \
         --platform=linux/amd64 \
         (+compile/app --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /app
+    COPY \
+        --platform=linux/amd64 \
+        (+compile/migs --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /migs
     ENV GIN_MODE=release
-    CMD ["/app"]
+    CMD ["/migs", "/app"]
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_TARGET_TAG_DOCKER
