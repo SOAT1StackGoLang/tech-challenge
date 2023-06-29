@@ -70,6 +70,10 @@ case "$1" in
       $compose_cmd -f ../devsecops/local/docker-compose.yml logs -f app &
     fi
     ;;
+  logs-tail)
+    # Show logs for all containers
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs -f
+    ;;
   *)
     # Print usage information if an invalid command is provided
     usage
