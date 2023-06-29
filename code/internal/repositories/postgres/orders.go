@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
@@ -15,6 +16,8 @@ type ordersRepositoryImpl struct {
 }
 
 func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, userID, productID uuid.UUID) (*domain.Order, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (o *ordersRepositoryImpl) InsertProductIntoOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error) {
