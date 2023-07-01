@@ -4,7 +4,7 @@ name: CI
 
 on:
   push:
-    branches: [ develop, feat/cicd*, fix/cicd/* ]
+    branches: [ 'develop', 'feat/cicd/*', 'fix/cicd/*' ]
   pull_request:
     branches: [ main, develop ]
 
