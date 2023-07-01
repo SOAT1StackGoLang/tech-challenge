@@ -6,12 +6,11 @@
 name: Trivy
 
 on:
-  push:
-    branches: [ 'develop', 'feat/cicd/*', 'fix/cicd/*' ]
-  pull_request:
-    branches: [ main, develop ]
-  schedule:
-    - cron: '42 5 * * 1'
+  workflow_run:
+    workflows: [ "Build and Push" ]
+    types:
+      - completed
+  workflow_dispatch:
 
 permissions:
   contents: read
