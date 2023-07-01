@@ -19,10 +19,6 @@
 name: Snyk Security
 
 on:
-  workflow_run:
-    workflows: [Build and Push]
-    types:
-      - completed
   push:
     branches: [ 'develop', 'feat/cicd/*', 'fix/cicd/*' ]
   pull_request:

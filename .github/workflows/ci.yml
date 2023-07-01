@@ -7,6 +7,10 @@ on:
     branches: [ 'develop', 'feat/cicd/*', 'fix/cicd/*' ]
   pull_request:
     branches: [ main, develop ]
+  workflow_run:
+    workflows: ['Snyk Security', 'Trivy']
+    types:
+      - completed    
 
 jobs:
   build:
