@@ -64,7 +64,7 @@ jobs:
 
         # Runs Snyk Container (Container and SCA) analysis and uploads result to Snyk.
       - name: Snyk Container monitor
-        run: snyk container monitor ghcr.io/lucasoarruda/demo-project:develop
+        run: snyk container monitor ghcr.io/soat1stackgolang/tech-challenge:${{ github.sha }}
 
         # Push the Snyk Code results into GitHub Code Scanning tab
       - name: Upload result to GitHub Code Scanning
