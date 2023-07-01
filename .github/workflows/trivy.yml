@@ -28,21 +28,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - uses: benjlevesque/short-sha@v2.2
+        id: short-sha
+        with:
+          length: 8
+          variable_name: SHORT_SHA
+
       - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: benjlevesque/short-sha@v2.2
-        id: short-sha
-        with:
-          length: 8
-          variable_name: SHORT_SHA
-        
       - name: Pull the image image from Dockerfile
         run: |
+          echo "Pulling image from"
           docker pull ghcr.io/soat1stackgolang/tech-challenge:${{ env.SHORT_SHA }}
           
       - name: Run Trivy vulnerability scanner
