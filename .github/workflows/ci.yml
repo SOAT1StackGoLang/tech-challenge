@@ -42,3 +42,7 @@ jobs:
     - name: Run build
       run: earthly --push +all
       working-directory: devsecops/cicd/build
+  trivy:
+    uses: ./.github/workflows/trivy.yml
+  snyk:
+    uses: ./.github/workflows/snyk-security.yml
