@@ -44,5 +44,7 @@ jobs:
       working-directory: devsecops/cicd/build
   trivy:
     uses: ./.github/workflows/trivy.yml
+    needs: build-and-push
   snyk:
     uses: ./.github/workflows/snyk-security.yml
+    needs: build-and-push
