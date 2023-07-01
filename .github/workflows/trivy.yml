@@ -6,6 +6,10 @@
 name: Trivy
 
 on:
+  workflow_run:
+    workflows: [Build and Push]
+    types:
+      - completed
   push:
     branches: [ 'develop', 'feat/cicd/*', 'fix/cicd/*' ]
   pull_request:
@@ -17,7 +21,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  trivy:
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
@@ -29,10 +33,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.9.2
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
         with:
-          image-ref: 'ghcr.io/lucasoarruda/demo-project:develop'
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull the image image from Dockerfile
+        run: |
+          docker pull ghcr.io/soat1stackgolang/tech-challenge:${{ github.sha }}
+          
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ghcr.io/soat1stackgolang/tech-challenge:${{ github.sha }}'
           format: 'template'
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results.sarif'

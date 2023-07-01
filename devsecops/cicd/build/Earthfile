@@ -47,3 +47,4 @@ docker:
     ENV GIN_MODE=release
     CMD ["/app"]
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_TARGET_TAG_DOCKER
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_GIT_SHORT_HASH
