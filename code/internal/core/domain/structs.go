@@ -50,16 +50,17 @@ type ProductList struct {
 
 type Order struct {
 	ID        uuid.UUID
-	OwnerID   uuid.UUID
+	UserID    uuid.UUID
 	PaymentID uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	Status    OrderStatus
-	Items     []Product
+	DeletedAt time.Time
+	Status    string
+	Products  []Product
 }
 
-func NewOrder(ownerID uuid.UUID, payment uuid.UUID, createdAt time.Time, updatedAt time.Time, status OrderStatus, items []Product) *Order {
-	return &Order{OwnerID: ownerID, PaymentID: payment, CreatedAt: createdAt, UpdatedAt: updatedAt, Status: status, Items: items}
+func NewOrder(ID uuid.UUID, userID uuid.UUID, paymentID uuid.UUID, createdAt time.Time, updatedAt time.Time, deletedAt time.Time, status string, items []Product) *Order {
+	return &Order{ID: ID, UserID: userID, PaymentID: paymentID, CreatedAt: createdAt, UpdatedAt: updatedAt, DeletedAt: deletedAt, Status: status, Products: items}
 }
 
 type Category struct {
