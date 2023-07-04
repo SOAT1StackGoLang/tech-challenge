@@ -61,36 +61,37 @@ func (o *ordersRepositoryImpl) productsIDToDomainProducts(ctx context.Context, o
 	return nil
 }
 
-func (o *ordersRepositoryImpl) InsertProductIntoOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error) {
-	var out *domain.Order
+func (o *ordersRepositoryImpl) InsertProductIntoOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (err error) {
+	var currentProducts []uuid.UUID
 
-	var in *Order
-
-	var err error
 	if err = o.db.WithContext(ctx).Table(ordersTable).
-		Select("*").
+		Select("products").
 		Where("id = ?", orderID).
 		Where("user_id = ?", userID).
 		Where("deleted_at = ?", nil).
-		First(in).
+		First(&currentProducts).
 		Error; err != nil {
 		o.log.Errorw(
 			"db failed getting order by id and user id",
 			zap.String("order_id", orderID.String()),
 			zap.Error(err),
 		)
-		return nil, err
+		return err
 	}
 
-	in.Products = append(in.Products, productID)
-	in.UpdatedAt = sql.NullTime{
+	updatedProducts := currentProducts
+	updatedProducts = append(currentProducts, productID)
+	updatedAt := sql.NullTime{
 		Time:  time.Now(),
 		Valid: true,
 	}
 
 	if err = o.db.WithContext(ctx).Table(ordersTable).
-		Updates(in).
-		Where("id = ?", in.ID).
+		Updates(map[string]any{
+			"updated_at": updatedAt,
+			"products":   updatedProducts,
+		}).
+		Where("id = ?", orderID).
 		Error; err != nil {
 		o.log.Errorw(
 			"db failed inserting product into order",
@@ -99,17 +100,56 @@ func (o *ordersRepositoryImpl) InsertProductIntoOrder(ctx context.Context, userI
 		)
 	}
 
-	if err = o.productsIDToDomainProducts(ctx, out, in); err != nil {
-		return nil, err
-	}
-	out = in.toDomain(out.Products)
-
-	return out, err
+	return err
 }
 
-func (o *ordersRepositoryImpl) RemoveProductFromOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error) {
-	//TODO implement me
-	panic("implement me")
+func (o *ordersRepositoryImpl) RemoveProductFromOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (err error) {
+	var currentProducts []uuid.UUID
+
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Select("products").
+		Where("id = ?", orderID).
+		Where("user_id = ?", userID).
+		Where("deleted_at = ?", nil).
+		First(&currentProducts).
+		Error; err != nil {
+		o.log.Errorw(
+			"db failed getting order by id and user id",
+			zap.String("order_id", orderID.String()),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	updatedProducts := removeProduct(currentProducts, productID)
+
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		UpdateColumn("products", updatedProducts).
+		Where("id = ?", orderID).
+		Error; err != nil {
+		o.log.Errorw(
+			"db failed updating order with removed item",
+			zap.String("order_id", orderID.String()),
+			zap.String("product_id", productID.String()),
+			zap.Error(err),
+		)
+	}
+
+	return err
+}
+
+func removeProduct(current []uuid.UUID, prodID uuid.UUID) []uuid.UUID {
+	if len(current) == 0 {
+		return current
+	}
+
+	for k, v := range current {
+		if v == prodID {
+			return append(current[:k], current[k+1:]...)
+		}
+	}
+
+	return current
 }
 
 func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error {
@@ -125,8 +165,9 @@ func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, userID, orderID 
 		Error; err != nil {
 		o.log.Errorw(
 			"db failed deleting order",
-			zap.String("order_id", orderID.String()))
-		return err
+			zap.String("order_id", orderID.String()),
+			zap.Error(err),
+		)
 	}
 	return err
 }
