@@ -127,15 +127,15 @@ type Order struct {
 	Products  []uuid.UUID `gorm:"type:jsonb"`
 }
 
-func (o *Order) newFromDomain(userID, product uuid.UUID) *Order {
-	products := []uuid.UUID{
-		product,
+func (o *Order) newFromDomain(userID uuid.UUID, products []uuid.UUID) {
+	if o == nil {
+		o = &Order{}
 	}
-	return &Order{UserID: userID, Products: products}
+	o = &Order{UserID: userID, Products: products, CreatedAt: time.Now(), Status: "OPEN"}
 }
 
-func (o *Order) toDomain(products []domain.Product) *domain.Order {
-	return &domain.Order{
+func (o *Order) toDomain(products ...[]uuid.UUID) *domain.Order {
+	order := &domain.Order{
 		ID:        o.ID,
 		UserID:    o.UserID,
 		PaymentID: o.PaymentID,
@@ -143,6 +143,10 @@ func (o *Order) toDomain(products []domain.Product) *domain.Order {
 		UpdatedAt: o.UpdatedAt.Time,
 		DeletedAt: o.DeletedAt.Time,
 		Status:    o.Status,
-		Products:  products,
 	}
+	if products != nil {
+		order.ProductsIDs = products[1]
+	}
+	return order
+
 }
