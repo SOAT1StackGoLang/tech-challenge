@@ -2,7 +2,7 @@
 
 # Define a function to print usage information
 usage() {
-  echo "Usage: $0 [start-db|destroy-db|start-app|build-app|start-all|destroy-all|logs-all]" 1>&2
+  echo "Usage: $0 [start-db|destroy-db|start-app|build-app|start-all|destroy-all|recreate-all|logs-all|logs-tail]" 1>&2
   exit 1
 }
 
