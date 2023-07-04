@@ -57,6 +57,7 @@ type Order struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   time.Time
+	Price       string
 	Status      string
 	ProductsIDs []uuid.UUID
 }
