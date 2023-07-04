@@ -2,9 +2,11 @@ package users
 
 import (
 	"context"
-	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
-	restful "github.com/emicklei/go-restful/v3"
 	"net/http"
+
+	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
+	restfulspec "github.com/emicklei/go-restful-openapi/v2"
+	restful "github.com/emicklei/go-restful/v3"
 )
 
 var (
@@ -28,8 +30,13 @@ func NewUserHandler(
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
+	tags := []string{"users"}
+
 	ws.Route(ws.POST("").To(handler.Create).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.GET("/validate/{document}").To(handler.Validate).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+	ws.Route(ws.GET("/validate/{document}").To(handler.Validate).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("create a user").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(User{})) // from the request
 
 	return handler
 }
