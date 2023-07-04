@@ -29,8 +29,9 @@ type CategoriesRepository interface {
 }
 
 type OrdersRepository interface {
+	//GetOrder()
 	CreateOrder(ctx context.Context, userID, productID uuid.UUID) (*domain.Order, error)
-	InsertProductIntoOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error)
-	RemoveProductFromOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error)
+	InsertProductIntoOrder(ctx context.Context, userID, orderID, productID uuid.UUID) error
+	RemoveProductFromOrder(ctx context.Context, userID, orderID, productID uuid.UUID) error
 	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
 }
