@@ -2,8 +2,10 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/shopspring/decimal"
+	"strings"
 
 	"github.com/google/uuid"
 	"time"
@@ -49,6 +51,8 @@ func (p *Product) toDomain() *domain.Product {
 	return &domain.Product{
 		ID:          p.ID,
 		CategoryID:  p.CategoryID,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt.Time,
 		Name:        p.Name,
 		Description: p.Description,
 		Price:       p.Price.String(),
@@ -123,6 +127,7 @@ type Order struct {
 	CreatedAt time.Time
 	UpdatedAt sql.NullTime
 	DeletedAt sql.NullTime
+	Price     decimal.Decimal
 	Status    string
 	Products  []uuid.UUID `gorm:"type:jsonb"`
 }
@@ -135,6 +140,7 @@ func (o *Order) newFromDomain(userID uuid.UUID, products []uuid.UUID) {
 }
 
 func (o *Order) toDomain(products ...[]uuid.UUID) *domain.Order {
+	price := fmt.Sprintf("R$ %s", o.Price.StringFixedBank(2))
 	order := &domain.Order{
 		ID:        o.ID,
 		UserID:    o.UserID,
@@ -143,10 +149,12 @@ func (o *Order) toDomain(products ...[]uuid.UUID) *domain.Order {
 		UpdatedAt: o.UpdatedAt.Time,
 		DeletedAt: o.DeletedAt.Time,
 		Status:    o.Status,
+		Price:     strings.Replace(price, ".", ",", -1),
 	}
 	if products != nil {
 		order.ProductsIDs = products[1]
 	}
+
 	return order
 }
 
