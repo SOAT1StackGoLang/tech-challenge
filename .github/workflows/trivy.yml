@@ -34,21 +34,21 @@ jobs:
           length: 8
           variable_name: SHORT_SHA
 
-      # - name: Log in to the Container registry
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ${{ env.REGISTRY }}
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Pull the image image from Dockerfile
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate tarball from image
         run: |
-          echo "Pulling image from"
           docker pull ghcr.io/soat1stackgolang/tech-challenge:${{ env.SHORT_SHA }}
-          
-      - name: Run Trivy vulnerability scanner
+          docker save -o vuln-image.tar ghcr.io/soat1stackgolang/tech-challenge:${{ env.SHORT_SHA }}
+              
+      - name: Run Trivy vulnerability scanner in tarball mode
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'ghcr.io/soat1stackgolang/tech-challenge:${{ env.SHORT_SHA }}'
+          input: /github/workspace/vuln-image.tar
           format: 'template'
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results.sarif'
