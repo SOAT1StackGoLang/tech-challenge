@@ -36,12 +36,9 @@ jobs:
 
       - name: Log in to the Container registry
         uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate tarball from image
         run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
           docker pull ghcr.io/soat1stackgolang/tech-challenge:${{ env.SHORT_SHA }}
           docker save -o vuln-image.tar ghcr.io/soat1stackgolang/tech-challenge:${{ env.SHORT_SHA }}
               
