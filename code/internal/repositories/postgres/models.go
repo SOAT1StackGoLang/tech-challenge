@@ -47,8 +47,8 @@ type Product struct {
 
 func (p *Product) toDomain() *domain.Product {
 	return &domain.Product{
-		ID: p.ID,
-		//Category:    p.Category,
+		ID:          p.ID,
+		CategoryID:  p.CategoryID,
 		Name:        p.Name,
 		Description: p.Description,
 		Price:       p.Price.String(),
@@ -73,7 +73,7 @@ func (p *Product) fromDomain(dProd *domain.Product) {
 
 	p.ID = dProd.ID
 	p.Name = dProd.Name
-	//p.Category = dProd.Category
+	p.CategoryID = dProd.CategoryID
 	p.Description = dProd.Description
 	p.Price = decimalValue
 }
