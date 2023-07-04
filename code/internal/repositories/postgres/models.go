@@ -36,19 +36,19 @@ func (u *User) fromDomain(dUser *domain.User) {
 }
 
 type Product struct {
-	ID          uuid.UUID `gorm:"id,primaryKey"`
-	CreatedAt   time.Time
-	UpdatedAt   sql.NullTime
-	Name        string
-	Description string
-	Category    string
-	Price       decimal.Decimal
+	ID          uuid.UUID       `gorm:"id,primaryKey" json:"id"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   sql.NullTime    `json:"updated_at"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	CategoryID  uuid.UUID       `json:"category_id"`
+	Price       decimal.Decimal `json:"price"`
 }
 
 func (p *Product) toDomain() *domain.Product {
 	return &domain.Product{
-		ID:          p.ID,
-		Category:    p.Category,
+		ID: p.ID,
+		//Category:    p.Category,
 		Name:        p.Name,
 		Description: p.Description,
 		Price:       p.Price.String(),
@@ -73,7 +73,7 @@ func (p *Product) fromDomain(dProd *domain.Product) {
 
 	p.ID = dProd.ID
 	p.Name = dProd.Name
-	p.Category = dProd.Category
+	//p.Category = dProd.Category
 	p.Description = dProd.Description
 	p.Price = decimalValue
 }
@@ -118,9 +118,31 @@ func (c *Category) fromDomain(in *domain.Category) {
 
 type Order struct {
 	ID        uuid.UUID `gorm:"id,primaryKey"`
-	OwnerID   uuid.UUID
+	UserID    uuid.UUID
 	PaymentID uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt sql.NullTime
+	DeletedAt sql.NullTime
 	Status    string
+	Products  []uuid.UUID `gorm:"type:jsonb"`
+}
+
+func (o *Order) newFromDomain(userID, product uuid.UUID) *Order {
+	products := []uuid.UUID{
+		product,
+	}
+	return &Order{UserID: userID, Products: products}
+}
+
+func (o *Order) toDomain(products []domain.Product) *domain.Order {
+	return &domain.Order{
+		ID:        o.ID,
+		UserID:    o.UserID,
+		PaymentID: o.PaymentID,
+		CreatedAt: o.CreatedAt,
+		UpdatedAt: o.UpdatedAt.Time,
+		DeletedAt: o.DeletedAt.Time,
+		Status:    o.Status,
+		Products:  products,
+	}
 }
