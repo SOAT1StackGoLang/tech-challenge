@@ -45,6 +45,9 @@ jobs:
   trivy:
     uses: ./.github/workflows/trivy.yml
     needs: build-and-push
+  linter:
+    uses: ./.github/workflows/golangci-lint.yml
+    needs: build-and-push
   # snyk:
   #   uses: ./.github/workflows/snyk-security.yml
   #   needs: build-and-push
