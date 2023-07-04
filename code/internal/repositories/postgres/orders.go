@@ -12,56 +12,56 @@ import (
 )
 
 type ordersRepositoryImpl struct {
-	log     *zap.SugaredLogger
-	db      *gorm.DB
-	prodUsc ports.ProductsUseCase
+	log *zap.SugaredLogger
+	db  *gorm.DB
 }
 
 const ordersTable = "lanchonete_orders"
 
-func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, userID, productID uuid.UUID) (*domain.Order, error) {
-	var out *domain.Order
+func NewPgxOrdersRepository(log *zap.SugaredLogger, db *gorm.DB) ports.OrdersRepository {
+	return &ordersRepositoryImpl{log: log, db: db}
+}
 
-	var in *Order
-	in.newFromDomain(userID, productID)
+func (o *ordersRepositoryImpl) GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error) {
+	var order *Order
 
 	var err error
-	if err = o.db.WithContext(ctx).Table(ordersTable).Create(&in).Error; err != nil {
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Select("*").
+		Where("id = ?", orderID).
+		First(order).Error; err != nil {
 		o.log.Errorw(
-			"db failed inserting order",
+			"db failed getting order",
 			zap.Error(err),
 		)
 		return nil, err
 	}
 
-	if err = o.productsIDToDomainProducts(ctx, out, in); err != nil {
+	out := order.toDomain()
+	return out, err
+}
+
+func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, userID uuid.UUID, products []uuid.UUID) (*domain.Order, error) {
+	var out *domain.Order
+
+	var in *Order
+	in.newFromDomain(userID, products)
+
+	var err error
+	if err = o.db.WithContext(ctx).Table(ordersTable).Create(&in).Error; err != nil {
+		o.log.Errorw(
+			"db failed creating order",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
-	out = in.toDomain(out.Products)
+	out = in.toDomain(products)
 
 	return out, err
 }
 
-func (o *ordersRepositoryImpl) productsIDToDomainProducts(ctx context.Context, out *domain.Order, in *Order) error {
-	out.Products = make([]domain.Product, 0, len(in.Products))
-	for _, v := range in.Products {
-		product, err := o.prodUsc.GetProduct(ctx, v)
-		if err != nil {
-			o.log.Errorw(
-				"order db failed getting product by id",
-				zap.String("product_id", v.String()),
-				zap.Error(err),
-			)
-			return err
-		}
-
-		out.Products = append(out.Products, *product)
-	}
-	return nil
-}
-
-func (o *ordersRepositoryImpl) InsertProductIntoOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (err error) {
+func (o *ordersRepositoryImpl) InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (err error) {
 	var currentProducts []uuid.UUID
 
 	if err = o.db.WithContext(ctx).Table(ordersTable).
@@ -80,7 +80,10 @@ func (o *ordersRepositoryImpl) InsertProductIntoOrder(ctx context.Context, userI
 	}
 
 	updatedProducts := currentProducts
-	updatedProducts = append(currentProducts, productID)
+	for _, p := range products {
+		updatedProducts = append(updatedProducts, p)
+	}
+
 	updatedAt := sql.NullTime{
 		Time:  time.Now(),
 		Valid: true,
@@ -96,14 +99,14 @@ func (o *ordersRepositoryImpl) InsertProductIntoOrder(ctx context.Context, userI
 		o.log.Errorw(
 			"db failed inserting product into order",
 			zap.String("order_id", orderID.String()),
-			zap.String("product_id", productID.String()),
+			zap.Any("products", products),
 		)
 	}
 
 	return err
 }
 
-func (o *ordersRepositoryImpl) RemoveProductFromOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (err error) {
+func (o *ordersRepositoryImpl) RemoveProductsFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (err error) {
 	var currentProducts []uuid.UUID
 
 	if err = o.db.WithContext(ctx).Table(ordersTable).
@@ -121,35 +124,40 @@ func (o *ordersRepositoryImpl) RemoveProductFromOrder(ctx context.Context, userI
 		return err
 	}
 
-	updatedProducts := removeProduct(currentProducts, productID)
+	var updatedProducts []uuid.UUID
+	for _, p := range products {
+		updatedProducts = removeProduct(currentProducts, p)
+	}
+
+	if len(updatedProducts) == 0 {
+		o.log.Debugw(
+			"order has no more items, deleting",
+			zap.String("order_id", orderID.String()),
+		)
+		return o.DeleteOrder(ctx, userID, orderID)
+	}
+
+	updatedAt := sql.NullTime{
+		Time:  time.Now(),
+		Valid: true,
+	}
 
 	if err = o.db.WithContext(ctx).Table(ordersTable).
-		UpdateColumn("products", updatedProducts).
+		Updates(map[string]any{
+			"products":   updatedProducts,
+			"updated_at": updatedAt,
+		}).
 		Where("id = ?", orderID).
 		Error; err != nil {
 		o.log.Errorw(
 			"db failed updating order with removed item",
 			zap.String("order_id", orderID.String()),
-			zap.String("product_id", productID.String()),
+			zap.Any("products", updatedProducts),
 			zap.Error(err),
 		)
 	}
 
 	return err
-}
-
-func removeProduct(current []uuid.UUID, prodID uuid.UUID) []uuid.UUID {
-	if len(current) == 0 {
-		return current
-	}
-
-	for k, v := range current {
-		if v == prodID {
-			return append(current[:k], current[k+1:]...)
-		}
-	}
-
-	return current
 }
 
 func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error {
@@ -172,6 +180,40 @@ func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, userID, orderID 
 	return err
 }
 
-func NewPgxOrdersRepository(log *zap.SugaredLogger, db *gorm.DB, productUseCase ports.ProductsUseCase) ports.OrdersRepository {
-	return &ordersRepositoryImpl{log: log, db: db, prodUsc: productUseCase}
+func (o *ordersRepositoryImpl) FinishOrder(ctx context.Context, orderID uuid.UUID) (err error) {
+	status := "DONE"
+	updatedAt := sql.NullTime{
+		Time:  time.Now(),
+		Valid: true,
+	}
+
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		UpdateColumns(map[string]any{
+			"status":     status,
+			"updated_at": updatedAt,
+		}).
+		Where("id = ?").
+		Error; err != nil {
+		o.log.Errorw(
+			"db failed finishing order",
+			zap.String("order_id", orderID.String()),
+			zap.Error(err),
+		)
+	}
+
+	return err
+}
+
+func removeProduct(current []uuid.UUID, prodID uuid.UUID) []uuid.UUID {
+	if len(current) == 0 {
+		return nil
+	}
+
+	for k, v := range current {
+		if v == prodID {
+			return append(current[:k], current[k+1:]...)
+		}
+	}
+
+	return current
 }
