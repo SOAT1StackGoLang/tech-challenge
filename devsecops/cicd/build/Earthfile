@@ -38,6 +38,7 @@ compile:
 
 docker:
     ARG EARTHLY_TARGET_TAG_DOCKER
+    ARG EARTHLY_GIT_SHORT_HASH
     ARG TARGETPLATFORM
     ARG TARGETARCH
     ARG TARGETVARIANT
@@ -54,3 +55,4 @@ docker:
     ENV GIN_MODE=release
     CMD ["/migs", "/app"]
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_TARGET_TAG_DOCKER
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_GIT_SHORT_HASH
