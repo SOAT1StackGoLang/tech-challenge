@@ -148,5 +148,38 @@ func (o *Order) toDomain(products ...[]uuid.UUID) *domain.Order {
 		order.ProductsIDs = products[1]
 	}
 	return order
+}
 
+type Payment struct {
+	ID        uuid.UUID `gorm:"id,primaryKey"`
+	CreatedAt time.Time
+	OrderID   uuid.UUID
+	UserID    uuid.UUID
+}
+
+func (p *Payment) fromDomain(dP *domain.Payment) {
+	if p == nil {
+		p = &Payment{ID: uuid.New(), CreatedAt: time.Now()}
+	}
+	p.OrderID = dP.OrderID
+	p.UserID = dP.UserID
+	p.CreatedAt = dP.CreatedAt
+}
+
+func (p *Payment) newPayment(userID, orderID uuid.UUID) {
+	if p == nil {
+		p = &Payment{ID: uuid.New(), CreatedAt: time.Now()}
+	}
+	p.OrderID = orderID
+	p.UserID = userID
+	p.CreatedAt = time.Now()
+}
+
+func (p *Payment) toDomain() *domain.Payment {
+	return &domain.Payment{
+		ID:        p.ID,
+		CreatedAt: p.CreatedAt,
+		OrderID:   p.OrderID,
+		UserID:    p.UserID,
+	}
 }

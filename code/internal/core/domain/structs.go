@@ -73,3 +73,14 @@ type Category struct {
 func NewCategory(createdAt time.Time, updatedAt time.Time, name string) *Category {
 	return &Category{CreatedAt: createdAt, UpdatedAt: updatedAt, Name: name}
 }
+
+type Payment struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	OrderID   uuid.UUID
+	UserID    uuid.UUID
+}
+
+func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, userID uuid.UUID) *Payment {
+	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, UserID: userID}
+}
