@@ -8,8 +8,8 @@ import (
 
 	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/usecases"
-	userHandlers "github.com/SOAT1StackGoLang/tech-challenge/internal/handlers/users"
-	postgres2 "github.com/SOAT1StackGoLang/tech-challenge/internal/repositories/postgres"
+	httphandlers "github.com/SOAT1StackGoLang/tech-challenge/internal/handlers/http"
+	pgxrepo "github.com/SOAT1StackGoLang/tech-challenge/internal/repositories/postgres"
 	restfulspec "github.com/emicklei/go-restful-openapi/v2"
 	"github.com/emicklei/go-restful/v3"
 	"github.com/go-openapi/spec"
@@ -49,15 +49,20 @@ func SetupCode() {
 		panic(err)
 	}
 
-	userRepo := postgres2.NewPgxUsersRepository(gormDB, log)
+	userRepo := pgxrepo.NewPgxUsersRepository(gormDB, log)
 	userUseCase := usecases.NewUsersUseCase(userRepo, log)
 
-	ws := new(restful.WebService)
-	userHandlers.NewUserHandler(ctx, userUseCase, ws)
-	restful.Add(ws)
+	catRepo := pgxrepo.NewPgxCategoriesRepository(gormDB, log)
+	catUseCase := usecases.NewCategoriesUseCase(log, catRepo, userUseCase)
 
 	// Configure Swagger and Redirect / to /apidocs/
 	configureSwagger()
+
+	ws := new(restful.WebService)
+	httphandlers.NewUserHandler(ctx, userUseCase, ws)
+	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
+
+	restful.Add(ws)
 
 	log.Info("listening...")
 	log.Panic(http.ListenAndServe(binding, nil))
