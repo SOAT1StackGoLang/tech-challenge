@@ -57,7 +57,6 @@ func SetupCode() {
 
 	// Configure Swagger and Redirect / to /apidocs/
 	configureSwagger()
-
 	ws := new(restful.WebService)
 	httphandlers.NewUserHandler(ctx, userUseCase, ws)
 	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
