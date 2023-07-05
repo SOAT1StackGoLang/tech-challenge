@@ -26,6 +26,7 @@ For example, to start the database container, run:
 
 ```shellscript
 ./run.sh start-db
+./run.sh recreate-all
 ```
 
 ```shellscript
