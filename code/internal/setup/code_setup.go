@@ -66,6 +66,12 @@ func SetupCode() {
 	// Configure Swagger and Redirect / to /apidocs/
 	configureSwagger()
 
+	ws := new(restful.WebService)
+	httphandlers.NewUserHandler(ctx, userUseCase, ws)
+	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
+
+	restful.Add(ws)
+
 	log.Info("listening...")
 	log.Panic(http.ListenAndServe(binding, nil))
 }
