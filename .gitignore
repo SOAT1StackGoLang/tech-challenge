@@ -20,3 +20,7 @@
 # Go workspace file
 go.work
 code/main
+
+# Ignore os arquivos de sistema do Mac
+.DS_store
+
