@@ -55,17 +55,6 @@ func SetupCode() {
 	catRepo := pgxrepo.NewPgxCategoriesRepository(gormDB, log)
 	catUseCase := usecases.NewCategoriesUseCase(log, catRepo, userUseCase)
 
-	// Configure Swagger and Redirect / to /apidocs/
-	configureSwagger()
-	ws := new(restful.WebService)
-	httphandlers.NewUserHandler(ctx, userUseCase, ws)
-	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
-
-	restful.Add(ws)
-
-	// Configure Swagger and Redirect / to /apidocs/
-	configureSwagger()
-
 	ws := new(restful.WebService)
 	httphandlers.NewUserHandler(ctx, userUseCase, ws)
 	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
