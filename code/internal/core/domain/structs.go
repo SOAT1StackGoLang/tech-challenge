@@ -25,21 +25,23 @@ type User struct {
 	Email    string
 }
 
-func NewUser(code string, name string, email string) *User {
-	id := uuid.New()
-	return &User{ID: id, Document: code, Name: name, Email: email}
+func NewUser(ID uuid.UUID, document string, name string, email string) *User {
+	return &User{ID: ID, Document: document, Name: name, Email: email}
 }
 
 type Product struct {
 	ID          uuid.UUID
-	Category    string
+	CategoryID  uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   time.Time
 	Name        string
 	Description string
 	Price       string
 }
 
-func NewProduct(category, name, description, price string) *Product {
-	return &Product{Category: category, Name: name, Description: description, Price: price}
+func NewProduct(ID uuid.UUID, categoryID uuid.UUID, createdAt time.Time, name string, description string, price string) *Product {
+	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: time.Now(), Name: name, Description: description, Price: price}
 }
 
 type ProductList struct {
@@ -49,17 +51,19 @@ type ProductList struct {
 }
 
 type Order struct {
-	ID        uuid.UUID
-	OwnerID   uuid.UUID
-	PaymentID uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Status    OrderStatus
-	Items     []Product
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	PaymentID   uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   time.Time
+	Price       string
+	Status      string
+	ProductsIDs []uuid.UUID
 }
 
-func NewOrder(ownerID uuid.UUID, payment uuid.UUID, createdAt time.Time, updatedAt time.Time, status OrderStatus, items []Product) *Order {
-	return &Order{OwnerID: ownerID, PaymentID: payment, CreatedAt: createdAt, UpdatedAt: updatedAt, Status: status, Items: items}
+func NewOrder(ID uuid.UUID, userID uuid.UUID, paymentID uuid.UUID, createdAt time.Time, products []uuid.UUID) *Order {
+	return &Order{ID: ID, UserID: userID, PaymentID: paymentID, CreatedAt: createdAt, ProductsIDs: products}
 }
 
 type Category struct {
@@ -69,6 +73,17 @@ type Category struct {
 	Name      string
 }
 
-func NewCategory(createdAt time.Time, updatedAt time.Time, name string) *Category {
-	return &Category{CreatedAt: createdAt, UpdatedAt: updatedAt, Name: name}
+func NewCategory(ID uuid.UUID, createdAt time.Time, name string) *Category {
+	return &Category{ID: ID, CreatedAt: createdAt, Name: name}
+}
+
+type Payment struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	OrderID   uuid.UUID
+	UserID    uuid.UUID
+}
+
+func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, userID uuid.UUID) *Payment {
+	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, UserID: userID}
 }

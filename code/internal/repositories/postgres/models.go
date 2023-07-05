@@ -2,8 +2,10 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/shopspring/decimal"
+	"strings"
 
 	"github.com/google/uuid"
 	"time"
@@ -36,19 +38,21 @@ func (u *User) fromDomain(dUser *domain.User) {
 }
 
 type Product struct {
-	ID          uuid.UUID `gorm:"id,primaryKey"`
-	CreatedAt   time.Time
-	UpdatedAt   sql.NullTime
-	Name        string
-	Description string
-	Category    string
-	Price       decimal.Decimal
+	ID          uuid.UUID       `gorm:"id,primaryKey" json:"id"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   sql.NullTime    `json:"updated_at"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	CategoryID  uuid.UUID       `json:"category_id"`
+	Price       decimal.Decimal `json:"price"`
 }
 
 func (p *Product) toDomain() *domain.Product {
 	return &domain.Product{
 		ID:          p.ID,
-		Category:    p.Category,
+		CategoryID:  p.CategoryID,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt.Time,
 		Name:        p.Name,
 		Description: p.Description,
 		Price:       p.Price.String(),
@@ -73,7 +77,7 @@ func (p *Product) fromDomain(dProd *domain.Product) {
 
 	p.ID = dProd.ID
 	p.Name = dProd.Name
-	p.Category = dProd.Category
+	p.CategoryID = dProd.CategoryID
 	p.Description = dProd.Description
 	p.Price = decimalValue
 }
@@ -118,9 +122,72 @@ func (c *Category) fromDomain(in *domain.Category) {
 
 type Order struct {
 	ID        uuid.UUID `gorm:"id,primaryKey"`
-	OwnerID   uuid.UUID
+	UserID    uuid.UUID
 	PaymentID uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt sql.NullTime
+	DeletedAt sql.NullTime
+	Price     decimal.Decimal
 	Status    string
+	Products  []uuid.UUID `gorm:"type:jsonb"`
+}
+
+func (o *Order) newFromDomain(userID uuid.UUID, products []uuid.UUID) {
+	if o == nil {
+		o = &Order{}
+	}
+	o = &Order{UserID: userID, Products: products, CreatedAt: time.Now(), Status: "OPEN"}
+}
+
+func (o *Order) toDomain(products ...[]uuid.UUID) *domain.Order {
+	price := fmt.Sprintf("R$ %s", o.Price.StringFixedBank(2))
+	order := &domain.Order{
+		ID:        o.ID,
+		UserID:    o.UserID,
+		PaymentID: o.PaymentID,
+		CreatedAt: o.CreatedAt,
+		UpdatedAt: o.UpdatedAt.Time,
+		DeletedAt: o.DeletedAt.Time,
+		Status:    o.Status,
+		Price:     strings.Replace(price, ".", ",", -1),
+	}
+	if products != nil {
+		order.ProductsIDs = products[1]
+	}
+
+	return order
+}
+
+type Payment struct {
+	ID        uuid.UUID `gorm:"id,primaryKey"`
+	CreatedAt time.Time
+	OrderID   uuid.UUID
+	UserID    uuid.UUID
+}
+
+func (p *Payment) fromDomain(dP *domain.Payment) {
+	if p == nil {
+		p = &Payment{ID: uuid.New(), CreatedAt: time.Now()}
+	}
+	p.OrderID = dP.OrderID
+	p.UserID = dP.UserID
+	p.CreatedAt = dP.CreatedAt
+}
+
+func (p *Payment) newPayment(userID, orderID uuid.UUID) {
+	if p == nil {
+		p = &Payment{ID: uuid.New(), CreatedAt: time.Now()}
+	}
+	p.OrderID = orderID
+	p.UserID = userID
+	p.CreatedAt = time.Now()
+}
+
+func (p *Payment) toDomain() *domain.Payment {
+	return &domain.Payment{
+		ID:        p.ID,
+		CreatedAt: p.CreatedAt,
+		OrderID:   p.OrderID,
+		UserID:    p.UserID,
+	}
 }

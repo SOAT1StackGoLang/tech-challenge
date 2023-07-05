@@ -27,8 +27,9 @@ func (c *categoriesUseCase) InsertCategory(ctx context.Context, userID uuid.UUID
 	if err := validateIsAdmin(c.log, c.userUC, ctx, userID); err != nil {
 		return nil, err
 	}
+	newCat := domain.NewCategory(uuid.New(), in.CreatedAt, in.Name)
 
-	out, err := c.catRepo.InsertCategory(ctx, in)
+	out, err := c.catRepo.InsertCategory(ctx, newCat)
 
 	return out, err
 }
