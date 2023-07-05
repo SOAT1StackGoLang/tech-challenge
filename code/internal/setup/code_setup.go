@@ -8,7 +8,7 @@ import (
 
 	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/usecases"
-	userHandlers "github.com/SOAT1StackGoLang/tech-challenge/internal/handlers/users"
+	httphandlers "github.com/SOAT1StackGoLang/tech-challenge/internal/handlers/http"
 	postgres2 "github.com/SOAT1StackGoLang/tech-challenge/internal/repositories/postgres"
 	restfulspec "github.com/emicklei/go-restful-openapi/v2"
 	"github.com/emicklei/go-restful/v3"
@@ -53,7 +53,7 @@ func SetupCode() {
 	userUseCase := usecases.NewUsersUseCase(userRepo, log)
 
 	ws := new(restful.WebService)
-	userHandlers.NewUserHandler(ctx, userUseCase, ws)
+	httphandlers.NewUserHandler(ctx, userUseCase, ws)
 	restful.Add(ws)
 
 	// Configure Swagger and Redirect / to /apidocs/
