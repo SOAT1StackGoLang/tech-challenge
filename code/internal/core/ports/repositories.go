@@ -29,8 +29,14 @@ type CategoriesRepository interface {
 }
 
 type OrdersRepository interface {
-	CreateOrder(ctx context.Context, userID, productID uuid.UUID) (*domain.Order, error)
-	InsertProductIntoOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error)
-	RemoveProductFromOrder(ctx context.Context, userID, orderID, productID uuid.UUID) (*domain.Order, error)
+	GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error)
+	CreateOrder(ctx context.Context, userID uuid.UUID, products []uuid.UUID) (*domain.Order, error)
+	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
+	RemoveProductsFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
 	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
+	FinishOrder(ctx context.Context, orderID uuid.UUID) error
+}
+
+type PaymentRepository interface {
+	PayOrder(ctx context.Context, userID, orderID uuid.UUID) error
 }

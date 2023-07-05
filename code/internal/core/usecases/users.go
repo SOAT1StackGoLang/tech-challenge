@@ -27,7 +27,7 @@ func (u usersUseCase) IsUserAdmin(ctx context.Context, id uuid.UUID) (bool, erro
 }
 
 func (u usersUseCase) CreateUser(ctx context.Context, name, document, email string) (*domain.User, error) {
-	user := domain.NewUser(document, name, email)
+	user := domain.NewUser(uuid.New(), document, name, email)
 
 	err := u.userRepo.InsertUser(ctx, user)
 	if err != nil {
