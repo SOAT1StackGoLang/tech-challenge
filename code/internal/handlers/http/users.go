@@ -1,26 +1,55 @@
-package users
+package http
 
 import (
 	"context"
+	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
+	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	restful "github.com/emicklei/go-restful/v3"
 	"net/http"
 )
 
-var (
-	ctx context.Context
-)
-
 type UserHandler struct {
+	ctx          context.Context
 	usersUseCase ports.UsersUseCase
 }
 
+type User struct {
+	ID       string `json:"id"`
+	Document string `json:"document"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+}
+
+func (u *User) fromDomain(user *domain.User) {
+	if u == nil {
+		u = &User{}
+	}
+
+	u.ID = user.ID.String()
+	u.Name = user.Name
+	u.Document = user.Document
+	u.Email = user.Email
+}
+
+func (u *User) toDomain() *domain.User {
+	if u == nil {
+		u = &User{}
+	}
+
+	return &domain.User{
+		ID:       helpers.SafeUUIDFromString(u.ID),
+		Document: u.Document,
+		Name:     u.Name,
+		Email:    u.Email,
+	}
+}
+
 func NewUserHandler(
-	mainCtx context.Context,
+	ctx context.Context,
 	useCase ports.UsersUseCase,
 	ws *restful.WebService,
 ) *UserHandler {
-	ctx = mainCtx
 	handler := &UserHandler{
 		usersUseCase: useCase,
 	}
@@ -42,7 +71,7 @@ func (uH *UserHandler) Create(req *restful.Request, resp *restful.Response) {
 		return
 	}
 
-	result, err := uH.usersUseCase.CreateUser(ctx, user.Name, user.Document, user.Email)
+	result, err := uH.usersUseCase.CreateUser(uH.ctx, user.Name, user.Document, user.Email)
 	if err != nil {
 		_ = resp.WriteError(http.StatusInternalServerError, err)
 		return
@@ -56,7 +85,7 @@ func (uH *UserHandler) Create(req *restful.Request, resp *restful.Response) {
 func (uH *UserHandler) Validate(req *restful.Request, resp *restful.Response) {
 	document := req.PathParameter("document")
 
-	result, err := uH.usersUseCase.ValidateUser(ctx, document)
+	result, err := uH.usersUseCase.ValidateUser(uH.ctx, document)
 	if err != nil {
 		_ = resp.WriteError(http.StatusInternalServerError, err)
 		return
