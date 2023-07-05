@@ -86,25 +86,12 @@ func configureSwagger() {
 func enrichSwaggerObject(swo *spec.Swagger) {
 	swo.Info = &spec.Info{
 		InfoProps: spec.InfoProps{
-			Title:       "UserService",
-			Description: "Resource for managing Users",
-			Contact: &spec.ContactInfo{
-				ContactInfoProps: spec.ContactInfoProps{
-					Name:  "john",
-					Email: "john@doe.rp",
-					URL:   "http://johndoe.org",
-				},
-			},
-			License: &spec.License{
-				LicenseProps: spec.LicenseProps{
-					Name: "MIT",
-					URL:  "http://mit.org",
-				},
-			},
-			Version: "1.0.0",
+			Title:       "Tech Challenge - Documentação API",
+			Description: "<a href=https://github.com/SOAT1StackGoLang/tech-challenge target=_blank>Repositório</a><a href=https://github.com/SOAT1StackGoLang/tech-challenge/wiki target=_blank>Wiki</a><ul><li><strong>André Luiz Freitas da Silva</strong><br>andreluiz03@gmail.com<br>RM348506</li><li><strong>George Baronheid</strong><br>baronheid.george@gmail.com<br>RM349086</li><li><strong>Lucas Arruda</strong><br>lucas.o.arruda@live.com<br>RM348533</li><li><strong>Murillo de Morais</strong><br>mm@in3d.com.br<br>RM348688</li><li><strong>Ana Lúcia de Faria</strong><br>aluciade@cisco.com<br>RM349133</li></ul>",
+			Version:     "1.0.0",
 		},
 	}
 	swo.Tags = []spec.Tag{spec.Tag{TagProps: spec.TagProps{
 		Name:        "users",
-		Description: "Managing users"}}}
+		Description: "Gerência de Clientes"}}}
 }

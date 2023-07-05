@@ -32,11 +32,18 @@ func NewUserHandler(
 
 	tags := []string{"users"}
 
-	ws.Route(ws.POST("").To(handler.Create).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.GET("/validate/{document}").To(handler.Validate).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
-		Doc("create a user").
+	ws.Route(ws.POST("").To(handler.Create).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Cadastra cliente").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(User{})) // from the request
+
+	ws.Route(ws.GET("/validate/{document}").To(handler.Validate).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Identifica cliente via CPF").
+		Param(ws.PathParameter("document", "CPF do cliente").DataType("string")).
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Writes(User{}). // on the response
+		Returns(200, "OK", User{}).
+		Returns(404, "Not Found", nil))
 
 	return handler
 }
