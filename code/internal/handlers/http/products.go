@@ -2,9 +2,12 @@ package http
 
 import (
 	"context"
+	"fmt"
+	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/emicklei/go-restful/v3"
 	"github.com/google/uuid"
+	"net/http"
 	"time"
 )
 
@@ -15,15 +18,31 @@ type (
 	}
 
 	Product struct {
-		ID          uuid.UUID `gorm:"id,primaryKey" json:"id"`
+		ID          string    `json:"id,omitempty"`
 		CreatedAt   time.Time `json:"created_at"`
 		UpdatedAt   time.Time `json:"updated_at,omitempty"`
 		Name        string    `json:"name"`
 		Description string    `json:"description"`
-		CategoryID  uuid.UUID `json:"category_id"`
+		CategoryID  string    `json:"category_id"`
 		Price       string    `json:"price"`
 	}
 )
+
+func (p *Product) fromDomain(product *domain.Product) {
+	if p == nil {
+		p = &Product{}
+	}
+
+	price := fmt.Sprintf("R$ %s", product.Price)
+
+	p.ID = product.ID.String()
+	p.CreatedAt = product.CreatedAt
+	p.UpdatedAt = product.UpdatedAt
+	p.Name = product.Name
+	p.Description = product.Description
+	p.CategoryID = product.CategoryID.String()
+	p.Price = price
+}
 
 func NewProductsHttpHandler(ctx context.Context, productsUC ports.ProductsUseCase, ws *restful.WebService) *ProductsHttpHandler {
 	handler := &ProductsHttpHandler{
@@ -41,7 +60,24 @@ func NewProductsHttpHandler(ctx context.Context, productsUC ports.ProductsUseCas
 }
 
 func (pH *ProductsHttpHandler) GetProduct(request *restful.Request, response *restful.Response) {
-	panic("implement me")
+	id := request.PathParameter("id")
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	result, err := pH.productsUC.GetProduct(pH.ctx, uid)
+	if err != nil {
+		_ = response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var prod Product
+	prod.fromDomain(result)
+	_ = response.WriteAsJson(prod)
+
 }
 func (pH *ProductsHttpHandler) InsertProduct(request *restful.Request, response *restful.Response) {
 	panic("implement me")
