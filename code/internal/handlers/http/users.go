@@ -65,9 +65,6 @@ func NewUserHandler(
 	handler := &UserHandler{
 		usersUseCase: useCase,
 	}
-	ws.Path("/users").
-		Consumes(restful.MIME_JSON).
-		Produces(restful.MIME_JSON)
 
 	tags := []string{"users"}
 
