@@ -41,7 +41,11 @@ type Product struct {
 	Price       string
 }
 
-func NewProduct(ID uuid.UUID, categoryID uuid.UUID, createdAt time.Time, name string, description string, price string) *Product {
+func ParseProductToDomain(ID uuid.UUID, categoryID uuid.UUID, createdAt time.Time, updatedAt time.Time, deletedAt time.Time, name string, description string, price string) *Product {
+	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: createdAt, UpdatedAt: updatedAt, DeletedAt: deletedAt, Name: name, Description: description, Price: price}
+}
+
+func NewProduct(ID uuid.UUID, categoryID uuid.UUID, name string, description string, price string) *Product {
 	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: time.Now(), Name: name, Description: description, Price: price}
 }
 

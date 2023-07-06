@@ -57,8 +57,7 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 		Returns(500, "Erro ao cadastrar categoria", nil))
 
 	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-
-	return &CategoriesHttpHandler{ctx: ctx, categoriesUseCase: categoriesUseCase}
+	return handler
 }
 
 func (cH *CategoriesHttpHandler) GetCategory(request *restful.Request, response *restful.Response) {
