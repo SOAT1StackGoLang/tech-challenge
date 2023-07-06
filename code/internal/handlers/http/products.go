@@ -68,7 +68,7 @@ func (p *Product) toDomain() *domain.Product {
 		panic("empty product")
 	}
 
-	return domain.ParseToDomain(
+	return domain.ParseProductToDomain(
 		helpers.SafeUUIDFromString(p.ID),
 		helpers.SafeUUIDFromString(p.CategoryID),
 		p.CreatedAt,
@@ -94,7 +94,7 @@ func (uP *UpdateProduct) toDomain() *domain.Product {
 	}
 
 	var nilTime time.Time
-	return domain.ParseToDomain(
+	return domain.ParseProductToDomain(
 		helpers.SafeUUIDFromString(uP.ID),
 		helpers.SafeUUIDFromString(uP.CategoryID),
 		nilTime,
