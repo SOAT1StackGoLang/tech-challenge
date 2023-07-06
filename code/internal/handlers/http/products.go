@@ -74,6 +74,7 @@ func (iP *InsertionProduct) toDomain() *domain.Product {
 	}
 
 	return &domain.Product{
+		ID:          uuid.New(),
 		Name:        iP.Name,
 		Description: iP.Description,
 		Price:       iP.Price,
@@ -144,7 +145,30 @@ func (pH *ProductsHttpHandler) UpdateProduct(request *restful.Request, response 
 	panic("implement me")
 }
 func (pH *ProductsHttpHandler) DeleteProduct(request *restful.Request, response *restful.Response) {
-	panic("implement me")
+	idParam := request.QueryParameters("id")
+	userParam := request.QueryParameters("user-id")
+	if len(idParam) == 0 || len(userParam) == 0 {
+		_ = response.WriteError(http.StatusBadRequest, errors.New("invalid query param"))
+		return
+	}
+
+	uID, err := uuid.Parse(userParam[0])
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+	pID, err := uuid.Parse(idParam[0])
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	if err = pH.productsUC.DeleteProduct(pH.ctx, uID, pID); err != nil {
+		_ = response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	response.WriteHeader(http.StatusOK)
 }
 func (pH *ProductsHttpHandler) ListProductsByCategory(request *restful.Request, response *restful.Response) {
 	panic("implement me")
