@@ -55,12 +55,16 @@ func SetupCode() {
 	catRepo := pgxrepo.NewPgxCategoriesRepository(gormDB, log)
 	catUseCase := usecases.NewCategoriesUseCase(log, catRepo, userUseCase)
 
+	prodRepo := pgxrepo.NewPgxProductsRepository(gormDB, log)
+	prodUseCase := usecases.NewProductsUseCase(prodRepo, userUseCase, log)
+
 	ws := new(restful.WebService)
 	ws.
 		Path("/v1").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
+	httphandlers.NewProductsHttpHandler(ctx, prodUseCase, ws)
 	httphandlers.NewUserHandler(ctx, userUseCase, ws)
 	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
 
