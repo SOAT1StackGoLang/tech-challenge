@@ -14,3 +14,31 @@ body {
     margin: 0;
     background: #fafafa;
 }
+
+.description .markdown > p a {
+    background: #cacaca;
+    border-radius: 8px;
+    color: #3b4151;
+    font-weight: 600;
+    margin-right: 5px;
+    padding: 10px 25px;
+    text-decoration: none;
+}
+
+.description ul {
+    background: #ededed;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    padding: 10px 25px;
+}
+@media screen and (max-width: 1024px) {
+    .description ul {
+        flex-direction: column;
+    }
+
+    .description ul li {
+        margin: 5px 0;
+    }
+}
