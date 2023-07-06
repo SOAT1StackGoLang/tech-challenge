@@ -55,7 +55,12 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 		Returns(200, "Categoria cadastrada", Category{}).
 		Returns(500, "Erro ao cadastrar categoria", nil))
 
-	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Remove categoria de produto").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(DeletionStruct{}). // from the request
+		Returns(200, "Categoria removida", nil).
+		Returns(500, "Erro ao remover categoria", nil))
 	return handler
 }
 
