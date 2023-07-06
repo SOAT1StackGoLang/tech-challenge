@@ -14,6 +14,15 @@ type productsUseCase struct {
 	userUC      ports.UsersUseCase
 }
 
+// GetProductsPriceSum is to be used when displaying the total amount of an order
+func (p productsUseCase) GetProductsPriceSumByID(ctx context.Context, products []uuid.UUID) (*domain.ProductsSum, error) {
+	prodsSum, err := p.productRepo.GetProductsPriceSumByID(ctx, products)
+	if err != nil {
+		return nil, err
+	}
+	return prodsSum, err
+}
+
 func NewProductsUseCase(repository ports.ProductsRepository, userUseCase ports.UsersUseCase, logger *zap.SugaredLogger) ports.ProductsUseCase {
 	return &productsUseCase{
 		logger:      logger,

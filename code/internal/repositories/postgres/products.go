@@ -6,6 +6,7 @@ import (
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"time"
@@ -18,6 +19,37 @@ type productsRepositoryImpl struct {
 	db  *gorm.DB
 }
 
+func (p *productsRepositoryImpl) GetProductsPriceSumByID(ctx context.Context, ids []uuid.UUID) (*domain.ProductsSum, error) {
+	type IDAndPrice struct {
+		ID    uuid.UUID
+		Price decimal.Decimal
+	}
+	var itemsAndPrices []IDAndPrice
+
+	if err := p.db.WithContext(ctx).Table(productsTable).
+		Select("id, price").
+		Find(&itemsAndPrices, ids).
+		Error; err != nil {
+		p.log.Errorw(
+			"db failed list products and price",
+			zap.Any("ids", ids),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	prodsSum := &domain.ProductsSum{
+		Products:    ids,
+		RequestedAt: time.Now(),
+	}
+
+	for _, v := range itemsAndPrices {
+		prodsSum.Sum.Add(v.Price)
+	}
+
+	return prodsSum, nil
+}
+
 func NewPgxProductsRepository(db *gorm.DB, logger *zap.SugaredLogger) ports.ProductsRepository {
 	return &productsRepositoryImpl{
 		log: logger,
@@ -25,7 +57,7 @@ func NewPgxProductsRepository(db *gorm.DB, logger *zap.SugaredLogger) ports.Prod
 	}
 }
 
-func (p productsRepositoryImpl) GetProduct(ctx context.Context, id uuid.UUID) (*domain.Product, error) {
+func (p *productsRepositoryImpl) GetProduct(ctx context.Context, id uuid.UUID) (*domain.Product, error) {
 	out := Product{}
 
 	if err := p.db.WithContext(ctx).Table(productsTable).
@@ -41,7 +73,7 @@ func (p productsRepositoryImpl) GetProduct(ctx context.Context, id uuid.UUID) (*
 	return out.toDomain(), nil
 }
 
-func (p productsRepositoryImpl) InsertProduct(ctx context.Context, in *domain.Product) (*domain.Product, error) {
+func (p *productsRepositoryImpl) InsertProduct(ctx context.Context, in *domain.Product) (*domain.Product, error) {
 	product := Product{}
 	product.fromDomain(in)
 
@@ -58,7 +90,7 @@ func (p productsRepositoryImpl) InsertProduct(ctx context.Context, in *domain.Pr
 
 }
 
-func (p productsRepositoryImpl) UpdateProduct(ctx context.Context, in *domain.Product) (*domain.Product, error) {
+func (p *productsRepositoryImpl) UpdateProduct(ctx context.Context, in *domain.Product) (*domain.Product, error) {
 	product := Product{}
 	product.fromDomain(in)
 	product.UpdatedAt = sql.NullTime{
@@ -78,7 +110,7 @@ func (p productsRepositoryImpl) UpdateProduct(ctx context.Context, in *domain.Pr
 	return product.toDomain(), nil
 }
 
-func (p productsRepositoryImpl) DeleteProduct(ctx context.Context, id uuid.UUID) error {
+func (p *productsRepositoryImpl) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 	product := Product{ID: id}
 	if err := p.db.WithContext(ctx).Table(productsTable).Delete(&product).Error; err != nil {
 		p.log.Errorw(
@@ -92,7 +124,7 @@ func (p productsRepositoryImpl) DeleteProduct(ctx context.Context, id uuid.UUID)
 	return nil
 }
 
-func (p productsRepositoryImpl) ListProductsByCategory(ctx context.Context, categoryID uuid.UUID, limit, offset int) (*domain.ProductList, error) {
+func (p *productsRepositoryImpl) ListProductsByCategory(ctx context.Context, categoryID uuid.UUID, limit, offset int) (*domain.ProductList, error) {
 	var products []Product
 	var total int64
 
