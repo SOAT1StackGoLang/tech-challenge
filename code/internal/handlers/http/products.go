@@ -3,14 +3,16 @@ package http
 import (
 	"context"
 	"fmt"
-	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
-	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
-	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
-	"github.com/emicklei/go-restful/v3"
-	"github.com/google/uuid"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
+	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
+	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
+	restfulspec "github.com/emicklei/go-restful-openapi/v2"
+	"github.com/emicklei/go-restful/v3"
+	"github.com/google/uuid"
 )
 
 type (
@@ -112,11 +114,46 @@ func NewProductsHttpHandler(ctx context.Context, productsUC ports.ProductsUseCas
 		productsUC: productsUC,
 	}
 
-	ws.Route(ws.GET("/products/{id}").To(handler.GetProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.POST("/products").To(handler.InsertProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.PUT("/products").To(handler.UpdateProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.DELETE("/products").To(handler.DeleteProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.GET("/products").To(handler.ListProductsByCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+	tags := []string{"products"}
+
+	ws.Route(ws.GET("/products/{id}").To(handler.GetProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Obtém dados do produto identificado pelo ID fornecido").
+		Param(ws.PathParameter("id", "ID do produto").DataType("string")).
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Writes(Product{}). // on the response
+		Returns(200, "OK", Product{}).
+		Returns(500, "ID de produto não cadastrado ou outro erro", nil))
+
+	ws.Route(ws.POST("/products").To(handler.InsertProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Cadastra produto").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(InsertionProduct{}). // from the request
+		Returns(200, "Produto cadastrado com sucesso", Product{}).
+		Returns(500, "Erro ao cadastrar produto", nil))
+
+	ws.Route(ws.PUT("/products").To(handler.UpdateProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Atualiza dados do produto").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(UpdateProduct{}). // from the request
+		Returns(200, "Dados do produto atualizados com sucesso", Product{}).
+		Returns(500, "Erro ao atualizar dados do produto", nil))
+
+	ws.Route(ws.DELETE("/products").To(handler.DeleteProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Remove produto").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(DeletionStruct{}). // from the request
+		Returns(200, "Produto removido com sucesso", nil).
+		Returns(500, "Erro ao remover produto", nil))
+
+	ws.Route(ws.GET("/products").To(handler.ListProductsByCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Lista produtos da categoria especificada").
+		Param(ws.QueryParameter("category-id", "ID da categoria").DataType("string")).
+		Param(ws.QueryParameter("limit", "Quantidade máxima de entradas que pode retornar").DataType("string")).
+		Param(ws.QueryParameter("offset", "Offset a ser usado na paginação").DataType("string")).
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Writes(Product{}). // on the response
+		Returns(200, "OK", Product{}).
+		Returns(500, "Erro ao listar produtos", nil))
 
 	return handler
 }
