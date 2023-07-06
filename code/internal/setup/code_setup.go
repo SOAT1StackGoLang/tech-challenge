@@ -57,6 +57,7 @@ func SetupCode() {
 
 	ws := new(restful.WebService)
 	ws.
+		Path("/v1").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
@@ -102,5 +103,17 @@ func enrichSwaggerObject(swo *spec.Swagger) {
 	}
 	swo.Tags = []spec.Tag{spec.Tag{TagProps: spec.TagProps{
 		Name:        "users",
-		Description: "Gerência de Clientes"}}}
+		Description: "Gerência de Clientes"}},
+		spec.Tag{TagProps: spec.TagProps{
+			Name:        "categories",
+			Description: "Gerência de Categorias"}},
+		spec.Tag{TagProps: spec.TagProps{
+			Name:        "products",
+			Description: "Gerência de Produtos"}},
+		spec.Tag{TagProps: spec.TagProps{
+			Name:        "orders",
+			Description: "Gerência de Pedidos"}},
+		spec.Tag{TagProps: spec.TagProps{
+			Name:        "payments",
+			Description: "Gerência de Pagamentos"}}}
 }

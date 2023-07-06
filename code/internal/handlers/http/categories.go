@@ -3,13 +3,15 @@ package http
 import (
 	"context"
 	"errors"
+	"net/http"
+	"time"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
+	restfulspec "github.com/emicklei/go-restful-openapi/v2"
 	"github.com/emicklei/go-restful/v3"
 	"github.com/google/uuid"
-	"net/http"
-	"time"
 )
 
 type (
@@ -18,12 +20,16 @@ type (
 		categoriesUseCase ports.CategoriesUseCase
 	}
 
+	InsertionCategory struct {
+		Name   string `json:"name" description:"Nome da categoria de produto"`
+		UserID string `json:"user_id,omitempty" description:"ID do usuario criando categoria"`
+	}
+
 	Category struct {
-		ID        string    `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Name      string    `json:"name"`
-		UserID    string    `json:"user_id"`
+		ID        string    `json:"id" description:"ID da categoria de produto"`
+		CreatedAt time.Time `json:"created_at" description:"Epoch time em que categoria foi criada"`
+		UpdatedAt time.Time `json:"updated_at" description:"Epoch time em que categoria foi modificada"`
+		InsertionCategory
 	}
 )
 
@@ -33,9 +39,25 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 		categoriesUseCase: categoriesUseCase,
 	}
 
-	ws.Route(ws.GET("/categories/{id}").To(handler.GetCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.POST("/categories").To(handler.InsertCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+	tags := []string{"categories"}
+
+	ws.Route(ws.GET("/categories/{id}").To(handler.GetCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Obtém informações sobre categoria de produto").
+		Param(ws.PathParameter("id", "ID da categoria de produto").DataType("string")).
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Writes(Category{}). // on the response
+		Returns(200, "OK", Category{}).
+		Returns(500, "ID de categoria não cadastrada ou outro erro", nil))
+
+	ws.Route(ws.POST("/categories").To(handler.InsertCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Cadastra categoria de produto").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(InsertionCategory{}). // from the request
+		Returns(200, "Categoria cadastrada", Category{}).
+		Returns(500, "Erro ao cadastrar categoria", nil))
+
 	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+
 	return &CategoriesHttpHandler{ctx: ctx, categoriesUseCase: categoriesUseCase}
 }
 
