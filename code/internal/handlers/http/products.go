@@ -27,10 +27,15 @@ type (
 	}
 
 	Product struct {
-		ID        string    `json:"id,omitempty"`
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at,omitempty"`
 		DeletedAt time.Time `json:"deleted_at,omitempty"`
+		InsertionProduct
+		UpdateProduct
+	}
+
+	UpdateProduct struct {
+		ID string `json:"id,omitempty"`
 		InsertionProduct
 	}
 )
@@ -56,16 +61,16 @@ func (p *Product) toDomain() *domain.Product {
 		panic("empty product")
 	}
 
-	return &domain.Product{
-		ID:          helpers.SafeUUIDFromString(p.ID),
-		CategoryID:  helpers.SafeUUIDFromString(p.CategoryID),
-		CreatedAt:   p.CreatedAt,
-		UpdatedAt:   p.UpdatedAt,
-		DeletedAt:   p.DeletedAt,
-		Name:        p.Name,
-		Description: p.Description,
-		Price:       p.Price,
-	}
+	return domain.ParseToDomain(
+		helpers.SafeUUIDFromString(p.ID),
+		helpers.SafeUUIDFromString(p.CategoryID),
+		p.CreatedAt,
+		p.UpdatedAt,
+		p.DeletedAt,
+		p.Name,
+		p.Description,
+		p.Price,
+	)
 }
 
 func (iP *InsertionProduct) toDomain() *domain.Product {
@@ -73,13 +78,25 @@ func (iP *InsertionProduct) toDomain() *domain.Product {
 		panic("empty product")
 	}
 
-	return &domain.Product{
-		ID:          uuid.New(),
-		Name:        iP.Name,
-		Description: iP.Description,
-		Price:       iP.Price,
-		CategoryID:  helpers.SafeUUIDFromString(iP.CategoryID),
+	return domain.NewProduct(uuid.New(), helpers.SafeUUIDFromString(iP.CategoryID), iP.Name, iP.Description, iP.Price)
+}
+
+func (uP *UpdateProduct) toDomain() *domain.Product {
+	if uP == nil {
+		panic("empty product")
 	}
+
+	var nilTime time.Time
+	return domain.ParseToDomain(
+		helpers.SafeUUIDFromString(uP.ID),
+		helpers.SafeUUIDFromString(uP.CategoryID),
+		nilTime,
+		nilTime,
+		nilTime,
+		uP.Name,
+		uP.Description,
+		uP.Price,
+	)
 }
 
 func NewProductsHttpHandler(ctx context.Context, productsUC ports.ProductsUseCase, ws *restful.WebService) *ProductsHttpHandler {
@@ -145,25 +162,25 @@ func (pH *ProductsHttpHandler) UpdateProduct(request *restful.Request, response 
 	panic("implement me")
 }
 func (pH *ProductsHttpHandler) DeleteProduct(request *restful.Request, response *restful.Response) {
-	idParam := request.QueryParameters("id")
-	userParam := request.QueryParameters("user-id")
-	if len(idParam) == 0 || len(userParam) == 0 {
-		_ = response.WriteError(http.StatusBadRequest, errors.New("invalid query param"))
-		return
-	}
+	var dS DeletionStruct
 
-	uID, err := uuid.Parse(userParam[0])
-	if err != nil {
-		_ = response.WriteError(http.StatusBadRequest, err)
-		return
-	}
-	pID, err := uuid.Parse(idParam[0])
-	if err != nil {
+	if err := request.ReadEntity(&dS); err != nil {
 		_ = response.WriteError(http.StatusBadRequest, err)
 		return
 	}
 
-	if err = pH.productsUC.DeleteProduct(pH.ctx, uID, pID); err != nil {
+	uid, err := uuid.Parse(dS.UserID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+	pID, err := uuid.Parse(dS.ID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	if err = pH.productsUC.DeleteProduct(pH.ctx, uid, pID); err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
