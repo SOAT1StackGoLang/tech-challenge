@@ -18,6 +18,14 @@ type (
 		productsUC ports.ProductsUseCase
 	}
 
+	Product struct {
+		UpdateProduct
+		InsertionProduct
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at,omitempty"`
+		DeletedAt time.Time `json:"deleted_at,omitempty"`
+	}
+
 	InsertionProduct struct {
 		UserID      string `json:"user_id"`
 		Name        string `json:"name"`
@@ -26,17 +34,9 @@ type (
 		Price       string `json:"price"`
 	}
 
-	Product struct {
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at,omitempty"`
-		DeletedAt time.Time `json:"deleted_at,omitempty"`
-		InsertionProduct
-		UpdateProduct
-	}
-
 	UpdateProduct struct {
-		ID string `json:"id,omitempty"`
 		InsertionProduct
+		ID string `json:"id,omitempty"`
 	}
 )
 
@@ -159,7 +159,28 @@ func (pH *ProductsHttpHandler) InsertProduct(request *restful.Request, response 
 	_ = response.WriteAsJson(prod)
 }
 func (pH *ProductsHttpHandler) UpdateProduct(request *restful.Request, response *restful.Response) {
-	panic("implement me")
+	var upProd UpdateProduct
+
+	if err := request.ReadEntity(&upProd); err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	uid, err := uuid.Parse(upProd.UserID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	product, err := pH.productsUC.UpdateProduct(pH.ctx, uid, upProd.toDomain())
+	if err != nil {
+		_ = response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var prod Product
+	prod.fromDomain(product)
+	_ = response.WriteAsJson(prod)
 }
 func (pH *ProductsHttpHandler) DeleteProduct(request *restful.Request, response *restful.Response) {
 	var dS DeletionStruct
