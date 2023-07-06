@@ -19,6 +19,7 @@ type ProductsUseCase interface {
 	UpdateProduct(ctx context.Context, userID uuid.UUID, product *domain.Product) (*domain.Product, error)
 	DeleteProduct(ctx context.Context, userID uuid.UUID, uuid uuid.UUID) error
 	ListProductsByCategory(ctx context.Context, categoryID uuid.UUID, limit, offset int) (*domain.ProductList, error)
+	GetProductsPriceSumByID(ctx context.Context, products []uuid.UUID) (*domain.ProductsSum, error)
 }
 
 type CategoriesUseCase interface {

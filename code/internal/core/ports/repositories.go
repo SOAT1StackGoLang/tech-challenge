@@ -20,6 +20,7 @@ type ProductsRepository interface {
 	UpdateProduct(ctx context.Context, product *domain.Product) (*domain.Product, error)
 	DeleteProduct(ctx context.Context, uuid uuid.UUID) error
 	ListProductsByCategory(ctx context.Context, categoryID uuid.UUID, limit, offset int) (*domain.ProductList, error)
+	GetProductsPriceSumByID(ctx context.Context, ids []uuid.UUID) (*domain.ProductsSum, error)
 }
 
 type CategoriesRepository interface {
