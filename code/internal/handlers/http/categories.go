@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"time"
 
@@ -56,7 +55,12 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 		Returns(200, "Categoria cadastrada", Category{}).
 		Returns(500, "Erro ao cadastrar categoria", nil))
 
-	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Remove categoria de produto").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(DeletionStruct{}). // from the request
+		Returns(200, "Categoria removida", nil).
+		Returns(500, "Erro ao remover categoria", nil))
 	return handler
 }
 
@@ -104,25 +108,25 @@ func (cH *CategoriesHttpHandler) InsertCategory(request *restful.Request, respon
 }
 
 func (cH *CategoriesHttpHandler) DeleteCategory(request *restful.Request, response *restful.Response) {
-	idParam := request.QueryParameters("id")
-	userParam := request.QueryParameters("user-id")
-	if len(idParam) == 0 || len(userParam) == 0 {
-		_ = response.WriteError(http.StatusBadRequest, errors.New("invalid query param"))
-		return
-	}
+	var dS DeletionStruct
 
-	uID, err := uuid.Parse(userParam[0])
-	if err != nil {
-		_ = response.WriteError(http.StatusBadRequest, err)
-		return
-	}
-	cID, err := uuid.Parse(idParam[0])
-	if err != nil {
+	if err := request.ReadEntity(&dS); err != nil {
 		_ = response.WriteError(http.StatusBadRequest, err)
 		return
 	}
 
-	if err = cH.categoriesUseCase.DeleteCategory(cH.ctx, uID, cID); err != nil {
+	uid, err := uuid.Parse(dS.UserID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+	cID, err := uuid.Parse(dS.ID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	if err = cH.categoriesUseCase.DeleteCategory(cH.ctx, uid, cID); err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
