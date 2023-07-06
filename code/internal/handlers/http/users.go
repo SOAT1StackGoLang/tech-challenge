@@ -16,21 +16,19 @@ type UserHandler struct {
 	usersUseCase ports.UsersUseCase
 }
 
-type NewUser struct {
-	Document string `xml:"document" json:"document" description:"CPF do cliente"`
-	Name     string `xml:"name" json:"name" description:"Nome do cliente"`
-	Email    string `xml:"email" json:"email" description:"Email do cliente"`
+type InsertionUser struct {
+	Document string `json:"document" description:"CPF do cliente"`
+	Name     string `json:"name" description:"Nome do cliente"`
+	Email    string `json:"email" description:"Email do cliente"`
 }
 
-type IDUser struct {
-	ID string `xml:"id" json:"id" description:"ID do cliente no sistema"`
+type ValidatedUser struct {
+	ID string `json:"id" description:"ID do cliente no sistema"`
 }
 
 type User struct {
-	ID       string `xml:"id" json:"id" description:"ID do cliente no sistema"`
-	Document string `xml:"document" json:"document" description:"CPF do cliente"`
-	Name     string `xml:"name" json:"name" description:"Nome do cliente"`
-	Email    string `xml:"email" json:"email" description:"Email do cliente"`
+	ID string `json:"id" description:"ID do cliente no sistema"`
+	InsertionUser
 }
 
 func (u *User) fromDomain(user *domain.User) {
@@ -71,7 +69,7 @@ func NewUserHandler(
 	ws.Route(ws.POST("/users").To(handler.Create).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Cadastra cliente").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(NewUser{}). // from the request
+		Reads(InsertionUser{}). // from the request
 		Returns(200, "Cliente cadastrado", User{}).
 		Returns(500, "Erro ao cadastrar cliente", nil))
 
@@ -79,8 +77,8 @@ func NewUserHandler(
 		Doc("Identifica cliente via CPF. Retorna o ID do cliente no sistema, caso haja cliente cadastrado com esse CPF").
 		Param(ws.PathParameter("document", "CPF do cliente").DataType("string")).
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Writes(IDUser{}). // on the response
-		Returns(200, "OK", IDUser{}).
+		Writes(ValidatedUser{}). // on the response
+		Returns(200, "OK", ValidatedUser{}).
 		Returns(500, "CPF não cadastrado ou outro erro", nil))
 
 	return handler
