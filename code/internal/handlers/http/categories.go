@@ -33,13 +33,9 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 		categoriesUseCase: categoriesUseCase,
 	}
 
-	ws.Path("/categories").
-		Consumes(restful.MIME_JSON).
-		Produces(restful.MIME_JSON)
-
-	ws.Route(ws.GET("/{id}").To(handler.GetCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.POST("").To(handler.InsertCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
-	ws.Route(ws.DELETE("").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+	ws.Route(ws.GET("/categories/{id}").To(handler.GetCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+	ws.Route(ws.POST("/categories").To(handler.InsertCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
+	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON))
 	return &CategoriesHttpHandler{ctx: ctx, categoriesUseCase: categoriesUseCase}
 }
 

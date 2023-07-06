@@ -56,6 +56,10 @@ func SetupCode() {
 	catUseCase := usecases.NewCategoriesUseCase(log, catRepo, userUseCase)
 
 	ws := new(restful.WebService)
+	ws.
+		Consumes(restful.MIME_JSON).
+		Produces(restful.MIME_JSON)
+
 	httphandlers.NewUserHandler(ctx, userUseCase, ws)
 	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
 
