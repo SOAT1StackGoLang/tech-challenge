@@ -9,6 +9,7 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"github.com/google/uuid"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -37,6 +38,12 @@ type (
 	UpdateProduct struct {
 		InsertionProduct
 		ID string `json:"id,omitempty"`
+	}
+
+	ProductList struct {
+		Products      []*Product
+		Limit, Offset int
+		Total         int64
 	}
 )
 
@@ -209,5 +216,41 @@ func (pH *ProductsHttpHandler) DeleteProduct(request *restful.Request, response 
 	response.WriteHeader(http.StatusOK)
 }
 func (pH *ProductsHttpHandler) ListProductsByCategory(request *restful.Request, response *restful.Response) {
-	panic("implement me")
+	id := request.QueryParameter("category-id")
+	limitS := request.QueryParameter("limit")
+	offsetS := request.QueryParameter("offset")
+
+	limit, err := strconv.Atoi(limitS)
+	if err != nil {
+		return
+	}
+
+	offset, err := strconv.Atoi(offsetS)
+	if err != nil {
+		return
+	}
+
+	catId, err := uuid.Parse(id)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	productList, err := pH.productsUC.ListProductsByCategory(pH.ctx, catId, limit, offset)
+	if err != nil {
+		_ = response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var prods ProductList
+	var prod *Product
+	for _, v := range productList.Products {
+		prod.fromDomain(v)
+		prods.Products = append(prods.Products, prod)
+	}
+	prods.Total = productList.Total
+	prods.Limit = productList.Limit
+	prods.Offset = productList.Offset
+
+	_ = response.WriteAsJson(prods)
 }
