@@ -19,7 +19,7 @@ func NewPaymentsUseCase(logger *zap.SugaredLogger, orderUC ports.OrdersUseCase) 
 	return &paymentsUseCase{logger: logger, orderUC: orderUC}
 }
 
-func (p paymentsUseCase) PayOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Payment, error) {
+func (p *paymentsUseCase) PayOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Payment, error) {
 	payment := domain.NewPayment(uuid.New(), time.Now(), orderID, userID)
 
 	order, err := p.orderUC.GetOrder(ctx, orderID)
