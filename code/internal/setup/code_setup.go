@@ -58,6 +58,11 @@ func SetupCode() {
 	prodRepo := pgxrepo.NewPgxProductsRepository(gormDB, log)
 	prodUseCase := usecases.NewProductsUseCase(prodRepo, userUseCase, log)
 
+	orderRepo := pgxrepo.NewPgxOrdersRepository(log, gormDB)
+	orderUseCase := usecases.NewOrdersUseCase(log, orderRepo, userUseCase)
+
+	paymenteUseCase := usecases.NewPaymentsUseCase(log, orderUseCase)
+
 	ws := new(restful.WebService)
 	ws.
 		Path("/v1").
@@ -67,6 +72,7 @@ func SetupCode() {
 	httphandlers.NewProductsHttpHandler(ctx, prodUseCase, ws)
 	httphandlers.NewUserHandler(ctx, userUseCase, ws)
 	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
+	httphandlers.NewPaymentsHttpHandler(ctx, paymenteUseCase, ws)
 
 	restful.Add(ws)
 

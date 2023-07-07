@@ -34,9 +34,9 @@ type OrdersUseCase interface {
 	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
 	RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
 	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
-	FinishOrder(ctx context.Context, userID, orderID uuid.UUID) error
+	SetOrderAsPaid(ctx context.Context, userID, orderID uuid.UUID) error
 }
 
 type PaymentUseCase interface {
-	PayOrder(ctx context.Context, orderID, userID uuid.UUID)
+	PayOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Payment, error)
 }

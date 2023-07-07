@@ -244,7 +244,7 @@ func (o *ordersRepositoryImpl) FinishOrder(ctx context.Context, orderID uuid.UUI
 			"status":     status,
 			"updated_at": updatedAt,
 		}).
-		Where("id = ?").
+		Where("id = ?", orderID).
 		Error; err != nil {
 		o.log.Errorw(
 			"db failed finishing order",
