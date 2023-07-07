@@ -34,7 +34,7 @@ type OrdersUseCase interface {
 	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
 	RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
 	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
-	PayOrder(ctx context.Context, userID, orderID uuid.UUID) error
+	SetOrderAsPaid(ctx context.Context, userID, orderID uuid.UUID) error
 }
 
 type PaymentUseCase interface {

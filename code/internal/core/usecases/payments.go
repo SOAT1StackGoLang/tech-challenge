@@ -31,7 +31,7 @@ func (p paymentsUseCase) PayOrder(ctx context.Context, orderID, userID uuid.UUID
 		return nil, helpers.ErrUnauthorized
 	}
 
-	if err = p.orderUC.PayOrder(ctx, userID, orderID); err != nil {
+	if err = p.orderUC.SetOrderAsPaid(ctx, userID, orderID); err != nil {
 		return nil, err
 	}
 
