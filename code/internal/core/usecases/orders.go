@@ -38,7 +38,7 @@ func (o ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UUI
 	return o.ordersRepo.DeleteOrder(ctx, userID, orderID)
 }
 
-func (o ordersUseCase) FinishOrder(ctx context.Context, userID, orderID uuid.UUID) error {
+func (o ordersUseCase) PayOrder(ctx context.Context, userID, orderID uuid.UUID) error {
 	err := validateIsAdmin(o.logger, o.userUC, ctx, userID)
 	if err != nil {
 		return err
