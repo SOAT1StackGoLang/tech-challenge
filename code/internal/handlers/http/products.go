@@ -43,7 +43,7 @@ type (
 	}
 
 	ProductList struct {
-		Products      []*Product
+		Products      []Product
 		Limit, Offset int
 		Total         int64
 	}
@@ -280,7 +280,7 @@ func (pH *ProductsHttpHandler) ListProductsByCategory(request *restful.Request, 
 	}
 
 	var prods ProductList
-	var prod *Product
+	var prod Product
 	for _, v := range productList.Products {
 		prod.fromDomain(v)
 		prods.Products = append(prods.Products, prod)
