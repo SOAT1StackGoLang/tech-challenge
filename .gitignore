@@ -24,3 +24,4 @@ code/main
 # Ignore os arquivos de sistema do Mac
 .DS_store
 
+.vscode/launch.json
