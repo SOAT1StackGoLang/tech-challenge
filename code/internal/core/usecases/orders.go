@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
@@ -39,5 +40,14 @@ func (o ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UUI
 }
 
 func (o ordersUseCase) SetOrderAsPaid(ctx context.Context, userID, orderID uuid.UUID) error {
+	order, err := o.GetOrder(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	if order.UserID != userID {
+		return helpers.ErrUnauthorized
+	}
+
 	return o.ordersRepo.FinishOrder(ctx, orderID)
 }
