@@ -61,6 +61,18 @@ case "$1" in
     sleep 2
     $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
     ;;
+  recreate-all-with-tests)
+    # Destroy all containers and their volumes
+    $compose_cmd -f ../devsecops/local/docker-compose.yml down -v
+    # Start all containers
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d --build
+    sleep 5
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs db &
+    sleep 2
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
+    sleep 10
+    ./autotest.sh
+    ;;
   logs-all)
     # Show logs for all containers
     if $compose_cmd -f ../devsecops/local/docker-compose.yml ps | grep -q "local_db_1"; then

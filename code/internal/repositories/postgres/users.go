@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
@@ -75,8 +76,9 @@ func (u usersRepositoryImpl) ValidateUser(ctx context.Context, document string) 
 
 func (u usersRepositoryImpl) IsUserAdmin(ctx context.Context, id uuid.UUID) (bool, error) {
 	var isAdmin bool
+
 	err := u.db.WithContext(ctx).Table(userTable).
-		Select("is_admin").Where("id = ?", id).First(isAdmin).Error
+		Select("is_admin").Where("id = ?", id).Scan(&isAdmin).Error
 	if err != nil {
 		u.log.Errorw(
 			"failed checking user admin status",
