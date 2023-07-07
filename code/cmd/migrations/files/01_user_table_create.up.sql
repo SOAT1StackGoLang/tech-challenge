@@ -14,4 +14,4 @@ create table public.lanchonete_users
 );
 
 create unique index lanchonete_users_document_index
-    on public.lanchonete_users using BTREE(document);
+    on public.lanchonete_users using BTREE (document);

@@ -139,11 +139,18 @@ func (p *productsRepositoryImpl) ListProductsByCategory(ctx context.Context, cat
 		return nil, err
 	}
 
-	_ = p.db.WithContext(ctx).Table(productsTable).
-		Where("category_id = ?").Count(&total)
+	if err = p.db.WithContext(ctx).Table(productsTable).
+		Where("category_id = ?", categoryID).
+		Count(&total).Error; err != nil {
+		p.log.Errorw(
+			"failed counting products by category id",
+			zap.String("category", categoryID.String()),
+			zap.Error(err),
+		)
+	}
 
-	var pList *domain.ProductList
-	var out []*domain.Product
+	pList := &domain.ProductList{}
+	out := make([]*domain.Product, 0, len(products))
 	for _, v := range products {
 		out = append(out, v.toDomain())
 	}

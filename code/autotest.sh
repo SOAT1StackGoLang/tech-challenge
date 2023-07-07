@@ -159,7 +159,7 @@ sleep 2
 # List products by category
 echo -e "\n-----"
 echo -e "${YELLOW}Listing Products by Category${NC}"
-PRODUCTS=$(curl -s --location localhost:8000/v1/products/$CATEGORY_ID/10/0)
+PRODUCTS=$(curl -s --location localhost:8000/v1/products?category-id=$CATEGORY_ID&limit=10&offset=0)
 if command -v jq &> /dev/null; then
     echo $PRODUCTS | jq
     echo $PRODUCTS
