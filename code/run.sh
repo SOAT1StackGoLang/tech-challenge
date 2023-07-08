@@ -45,6 +45,7 @@ case "$1" in
     $compose_cmd -f ../devsecops/local/docker-compose.yml up -d --build
     sleep 5
     $compose_cmd -f ../devsecops/local/docker-compose.yml logs db &
+    sleep 5
     $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
     ;;
   destroy-all)

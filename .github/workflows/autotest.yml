@@ -1,0 +1,20 @@
+name: autotest
+on:
+  workflow_call:    
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  # pull-requests: read
+
+jobs:
+  autotest:
+    name: Run Autotest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build the stack and start services
+        run: cd code && ./run.sh start-all
+      - name: Run the tests
+        run: cd code && ./autotest.sh
