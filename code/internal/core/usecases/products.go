@@ -6,6 +6,7 @@ import (
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -42,6 +43,9 @@ func (p productsUseCase) InsertProduct(ctx context.Context, userID uuid.UUID, in
 		return nil, helpers.ErrUnauthorized
 	}
 
+	if in.Price == decimal.Zero {
+		return nil, helpers.ErrBadRequest
+	}
 	out, err := p.productRepo.InsertProduct(ctx, in)
 	return out, err
 }
@@ -50,7 +54,9 @@ func (p productsUseCase) UpdateProduct(ctx context.Context, userID uuid.UUID, in
 	if !isAdmin(p.logger, p.userUC, ctx, userID) {
 		return nil, helpers.ErrUnauthorized
 	}
-
+	if in.Price == decimal.Zero {
+		return nil, helpers.ErrBadRequest
+	}
 	out, err := p.productRepo.UpdateProduct(ctx, in)
 	return out, err
 }
