@@ -58,7 +58,7 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Remove categoria de produto").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(DeletionStruct{}). // from the request
+		Reads(QueryStruct{}). // from the request
 		Returns(200, "Categoria removida", nil).
 		Returns(500, "Erro ao remover categoria", nil))
 	return handler
@@ -108,7 +108,7 @@ func (cH *CategoriesHttpHandler) InsertCategory(request *restful.Request, respon
 }
 
 func (cH *CategoriesHttpHandler) DeleteCategory(request *restful.Request, response *restful.Response) {
-	var dS DeletionStruct
+	var dS QueryStruct
 
 	if err := request.ReadEntity(&dS); err != nil {
 		_ = response.WriteError(http.StatusBadRequest, err)

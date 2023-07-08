@@ -68,10 +68,9 @@ func (o *ordersRepositoryImpl) UpdateOrder(ctx context.Context, in *domain.Order
 	order.UpdatedAt.Time = time.Now()
 
 	var err error
-	if err := o.db.WithContext(ctx).Table(ordersTable).
+	if err = o.db.WithContext(ctx).Table(ordersTable).
 		Updates(&order).
 		Where("id = ?", in.ID).
-		Where("user_id", in.UserID).
 		Error; err != nil {
 		o.log.Errorw(
 			"db failed updating order",
@@ -85,7 +84,7 @@ func (o *ordersRepositoryImpl) UpdateOrder(ctx context.Context, in *domain.Order
 	return order.toDomain(), err
 }
 
-func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error {
+func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, orderID uuid.UUID) error {
 	var err error
 	deletedAt := sql.NullTime{
 		Time:  time.Now(),
@@ -93,7 +92,6 @@ func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, userID, orderID 
 	}
 	if err = o.db.WithContext(ctx).Table(ordersTable).
 		UpdateColumn("deleted_at", deletedAt).
-		Where("user_id", userID).
 		Where("order_id", orderID).
 		Error; err != nil {
 		o.log.Errorw(
@@ -105,8 +103,8 @@ func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, userID, orderID 
 	return err
 }
 
-func (o *ordersRepositoryImpl) FinishOrder(ctx context.Context, orderID uuid.UUID) (err error) {
-	status := "DONE"
+func (o *ordersRepositoryImpl) PayOrder(ctx context.Context, orderID uuid.UUID) (err error) {
+	status := "PAGA"
 	updatedAt := sql.NullTime{
 		Time:  time.Now(),
 		Valid: true,

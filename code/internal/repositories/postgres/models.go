@@ -52,7 +52,7 @@ func (p *Product) toDomain() *domain.Product {
 		UpdatedAt:   p.UpdatedAt.Time,
 		Name:        p.Name,
 		Description: p.Description,
-		Price:       p.Price.String(),
+		Price:       p.Price,
 	}
 }
 
@@ -61,22 +61,11 @@ func (p *Product) fromDomain(dProd *domain.Product) {
 		p = &Product{}
 	}
 
-	var decimalValue decimal.Decimal
-	var err error
-	if dProd.Price != "" {
-		decimalValue, err = decimal.NewFromString(dProd.Price)
-		if err != nil {
-			return
-		}
-	} else {
-		decimalValue = decimal.NewFromInt(0)
-	}
-
 	p.ID = dProd.ID
 	p.Name = dProd.Name
 	p.CategoryID = dProd.CategoryID
 	p.Description = dProd.Description
-	p.Price = decimalValue
+	p.Price = dProd.Price
 }
 
 type ProductList struct {

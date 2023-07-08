@@ -33,8 +33,8 @@ type OrdersRepository interface {
 	GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error)
 	CreateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
 	UpdateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
-	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
-	FinishOrder(ctx context.Context, orderID uuid.UUID) error
+	DeleteOrder(ctx context.Context, orderID uuid.UUID) error
+	PayOrder(ctx context.Context, orderID uuid.UUID) error
 }
 
 type PaymentRepository interface {

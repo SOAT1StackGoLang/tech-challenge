@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func validateIsAdmin(log *zap.SugaredLogger, uRepo ports.UsersUseCase, ctx context.Context, userID uuid.UUID) error {
+func isAdmin(log *zap.SugaredLogger, uRepo ports.UsersUseCase, ctx context.Context, userID uuid.UUID) bool {
 	admin, err := uRepo.IsUserAdmin(ctx, userID)
 	switch {
 	case err != nil:
@@ -17,7 +17,7 @@ func validateIsAdmin(log *zap.SugaredLogger, uRepo ports.UsersUseCase, ctx conte
 			zap.String("userID", userID.String()),
 			zap.Error(err),
 		)
-		return err
+		return false
 	case !admin:
 		log.Errorw(
 			"unauthorized user",
@@ -25,7 +25,7 @@ func validateIsAdmin(log *zap.SugaredLogger, uRepo ports.UsersUseCase, ctx conte
 			zap.Error(helpers.ErrUnauthorized),
 		)
 		err = helpers.ErrUnauthorized
-		return err
+		return false
 	}
-	return nil
+	return true
 }

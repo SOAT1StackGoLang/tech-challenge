@@ -7,6 +7,7 @@ import (
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"time"
 )
 
 type ordersUseCase struct {
@@ -20,8 +21,16 @@ func NewOrdersUseCase(logger *zap.SugaredLogger, ordersRepo ports.OrdersReposito
 	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC}
 }
 
-func (o *ordersUseCase) GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error) {
-	return o.ordersRepo.GetOrder(ctx, orderID)
+func (o *ordersUseCase) GetOrder(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error) {
+	order, err := o.ordersRepo.GetOrder(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if order.UserID != userID || isAdmin(o.logger, o.userUC, ctx, order.UserID) {
+		return nil, helpers.ErrUnauthorized
+	}
+
+	return order, nil
 }
 
 func (o *ordersUseCase) CreateOrder(ctx context.Context, userID uuid.UUID, products []uuid.UUID) (*domain.Order, error) {
@@ -30,17 +39,17 @@ func (o *ordersUseCase) CreateOrder(ctx context.Context, userID uuid.UUID, produ
 		return nil, err
 	}
 
-	return o.ordersRepo.CreateOrder(ctx, &domain.Order{})
+	var order *domain.Order
+	order = domain.NewOrder(uuid.New(), userID, time.Now(), products)
+
+	return o.ordersRepo.CreateOrder(ctx, order)
 }
 
 func (o *ordersUseCase) InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (*domain.Order, error) {
-	order, err := o.GetOrder(ctx, orderID)
+	order, err := o.GetOrder(ctx, userID, orderID)
 	// Check ownership
 	if err != nil {
 		return nil, err
-	}
-	if order.UserID != userID {
-		return nil, helpers.ErrUnauthorized
 	}
 
 	// append products
@@ -61,13 +70,9 @@ func (o *ordersUseCase) InsertProductsIntoOrder(ctx context.Context, userID, ord
 }
 
 func (o *ordersUseCase) RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (*domain.Order, error) {
-	order, err := o.GetOrder(ctx, orderID)
-	// Check ownership
+	order, err := o.GetOrder(ctx, userID, orderID)
 	if err != nil {
 		return nil, err
-	}
-	if order.UserID != userID {
-		return nil, helpers.ErrUnauthorized
 	}
 
 	// append products
@@ -85,6 +90,26 @@ func (o *ordersUseCase) RemoveProductFromOrder(ctx context.Context, userID, orde
 	}
 
 	return order, err
+}
+
+func (o *ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error {
+	// Check ownership
+	_, err := o.GetOrder(ctx, userID, orderID)
+	if err != nil {
+		return err
+	}
+
+	return o.ordersRepo.DeleteOrder(ctx, orderID)
+}
+
+func (o *ordersUseCase) SetOrderAsPaid(ctx context.Context, userID, orderID uuid.UUID) error {
+	// Check ownership
+	_, err := o.GetOrder(ctx, userID, orderID)
+	if err != nil {
+		return err
+	}
+
+	return o.ordersRepo.PayOrder(ctx, orderID)
 }
 
 func removeProduct(current []uuid.UUID, prodID uuid.UUID) []uuid.UUID {
@@ -119,21 +144,4 @@ func (o *ordersUseCase) getTotalAndUpdate(ctx context.Context, prodIDs []uuid.UU
 
 	order = updated
 	return nil
-}
-
-func (o *ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error {
-	return o.ordersRepo.DeleteOrder(ctx, userID, orderID)
-}
-
-func (o *ordersUseCase) SetOrderAsPaid(ctx context.Context, userID, orderID uuid.UUID) error {
-	order, err := o.GetOrder(ctx, orderID)
-	if err != nil {
-		return err
-	}
-
-	if order.UserID != userID {
-		return helpers.ErrUnauthorized
-	}
-
-	return o.ordersRepo.FinishOrder(ctx, orderID)
 }
