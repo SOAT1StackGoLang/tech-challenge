@@ -253,7 +253,7 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 		Doc("Lista pedidos").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(OrderListRequest{}).
-		Returns(http.StatusOK, "sucesso", Order{}).
+		Returns(http.StatusOK, "sucesso", OrderList{}).
 		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
 	ws.Route(ws.POST("/orders").To(handler.handleCreateOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Cadastra pedido").
