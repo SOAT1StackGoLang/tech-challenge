@@ -198,8 +198,8 @@ sleep 2
 # Get product after delete
 echo -e "\n-----"
 echo -e "${YELLOW}Getting Product after delete${NC}"
-PRODUCT=$(curl -s --location localhost:8000/v1/products/$PRODUCT_ID)
-echo $PRODUCT
+PRODUCT=$(curl -s --location localhost:8000/v1/products/"$PRODUCT_ID")
+echo "$PRODUCT"
 sleep 2
 
 # Create order
@@ -209,7 +209,7 @@ ORDER=$(curl -s --location --request POST 'localhost:8000/v1/orders' \
 --header 'Content-Type: application/json' \
 --data-raw '{
    "products_ids": [
-      "'$PRODUCT_ID2'"
+      "'"$PRODUCT_ID2"'"
    ],
    "user_id": "123e4567-e89b-12d3-a456-426614174000"
 }')
