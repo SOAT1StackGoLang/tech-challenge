@@ -73,6 +73,7 @@ func SetupCode() {
 	httphandlers.NewUserHandler(ctx, userUseCase, ws)
 	httphandlers.NewCategoriesHttpHandler(ctx, catUseCase, ws)
 	httphandlers.NewPaymentsHttpHandler(ctx, paymenteUseCase, ws)
+	httphandlers.NewOrdersHttpHandler(ctx, orderUseCase, ws)
 
 	restful.Add(ws)
 

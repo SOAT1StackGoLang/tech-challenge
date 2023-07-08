@@ -48,6 +48,12 @@ type ProductList struct {
 	Total         int64
 }
 
+type OrderList struct {
+	Orders        []*Order
+	Limit, Offset int
+	Total         int64
+}
+
 type ProductsSum struct {
 	Products    []uuid.UUID
 	RequestedAt time.Time
