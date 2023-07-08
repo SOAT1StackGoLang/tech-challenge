@@ -102,14 +102,14 @@ func (o *ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UU
 	return o.ordersRepo.DeleteOrder(ctx, orderID)
 }
 
-func (o *ordersUseCase) SetOrderAsPaid(ctx context.Context, userID, orderID uuid.UUID) error {
+func (o *ordersUseCase) SetOrderAsPaid(ctx context.Context, payment *domain.Payment) error {
 	// Check ownership
-	_, err := o.GetOrder(ctx, userID, orderID)
+	_, err := o.GetOrder(ctx, payment.UserID, payment.OrderID)
 	if err != nil {
 		return err
 	}
 
-	return o.ordersRepo.PayOrder(ctx, orderID)
+	return o.ordersRepo.SetOrderAsPaid(ctx, payment)
 }
 
 func removeProduct(current []uuid.UUID, prodID uuid.UUID) []uuid.UUID {

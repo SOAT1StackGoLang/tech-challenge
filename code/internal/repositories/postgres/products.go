@@ -28,7 +28,8 @@ func (p *productsRepositoryImpl) GetProductsPriceSumByID(ctx context.Context, id
 
 	if err := p.db.WithContext(ctx).Table(productsTable).
 		Select("id, price").
-		Find(&itemsAndPrices, ids).
+		Where("id IN (?)", ids).
+		Find(&itemsAndPrices).
 		Error; err != nil {
 		p.log.Errorw(
 			"db failed list products and price",

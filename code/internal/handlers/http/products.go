@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -54,7 +53,7 @@ func (p *Product) fromDomain(product *domain.Product) {
 		p = &Product{}
 	}
 
-	price := fmt.Sprintf("R$ %s", product.Price)
+	price := helpers.ParseDecimalToString(product.Price)
 
 	p.ID = product.ID.String()
 	p.CreatedAt = product.CreatedAt

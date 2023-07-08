@@ -191,25 +191,6 @@ func (oH *OrdersHttpHandler) handleDeleteOrder(request *restful.Request, respons
 	response.WriteHeader(http.StatusOK)
 }
 
-func (oH *OrdersHttpHandler) handleSetOrderAsPaid(request *restful.Request, response *restful.Response) {
-	var payObject QueryStruct
-
-	if err := request.ReadEntity(&payObject); err != nil {
-		_ = response.WriteError(http.StatusBadRequest, err)
-		return
-	}
-	id := helpers.SafeUUIDFromString(payObject.ID)
-	uid := helpers.SafeUUIDFromString(payObject.UserID)
-
-	err := oH.ordersUC.SetOrderAsPaid(oH.ctx, uid, id)
-	if err != nil {
-		_ = response.WriteError(http.StatusInternalServerError, err)
-		return
-	}
-
-	response.WriteHeader(http.StatusOK)
-}
-
 func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws *restful.WebService) *OrdersHttpHandler {
 	handler := &OrdersHttpHandler{
 		ctx:      ctx,
@@ -245,12 +226,6 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(QueryStruct{}).
 		Returns(http.StatusOK, "sucesso", nil).
-		Returns(http.StatusBadRequest, "falha", nil))
-	ws.Route(ws.PUT("/orders/pay").To(handler.handleSetOrderAsPaid).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
-		Doc("Realiza o pagamento do pedido").
-		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(QueryStruct{}).
-		Returns(http.StatusOK, "removido com sucesso", nil).
 		Returns(http.StatusBadRequest, "falha", nil))
 	return handler
 }

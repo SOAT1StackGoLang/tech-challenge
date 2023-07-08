@@ -103,7 +103,7 @@ func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, orderID uuid.UUI
 	return err
 }
 
-func (o *ordersRepositoryImpl) PayOrder(ctx context.Context, orderID uuid.UUID) (err error) {
+func (o *ordersRepositoryImpl) SetOrderAsPaid(ctx context.Context, payment *domain.Payment) (err error) {
 	status := "PAGA"
 	updatedAt := sql.NullTime{
 		Time:  time.Now(),
@@ -114,12 +114,13 @@ func (o *ordersRepositoryImpl) PayOrder(ctx context.Context, orderID uuid.UUID) 
 		UpdateColumns(map[string]any{
 			"status":     status,
 			"updated_at": updatedAt,
+			"payment_id": payment.ID,
 		}).
-		Where("id = ?", orderID).
+		Where("id = ?", payment.OrderID).
 		Error; err != nil {
 		o.log.Errorw(
 			"db failed finishing order",
-			zap.String("order_id", orderID.String()),
+			zap.String("order_id", payment.OrderID.String()),
 			zap.Error(err),
 		)
 	}

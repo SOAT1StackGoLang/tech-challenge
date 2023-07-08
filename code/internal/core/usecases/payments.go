@@ -10,8 +10,9 @@ import (
 )
 
 type paymentsUseCase struct {
-	logger  *zap.SugaredLogger
-	orderUC ports.OrdersUseCase
+	logger      *zap.SugaredLogger
+	orderUC     ports.OrdersUseCase
+	paymentRepo ports.PaymentRepository
 }
 
 func NewPaymentsUseCase(logger *zap.SugaredLogger, orderUC ports.OrdersUseCase) ports.PaymentUseCase {
@@ -21,9 +22,14 @@ func NewPaymentsUseCase(logger *zap.SugaredLogger, orderUC ports.OrdersUseCase) 
 func (p *paymentsUseCase) PayOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Payment, error) {
 	payment := domain.NewPayment(uuid.New(), time.Now(), orderID, userID)
 
-	if err := p.orderUC.SetOrderAsPaid(ctx, userID, orderID); err != nil {
+	receipt, err := p.paymentRepo.PayOrder(ctx, payment)
+	if err != nil {
 		return nil, err
 	}
 
-	return payment, nil
+	if err = p.orderUC.SetOrderAsPaid(ctx, receipt); err != nil {
+		return nil, err
+	}
+
+	return receipt, nil
 }
