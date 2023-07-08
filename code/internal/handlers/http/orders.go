@@ -39,6 +39,19 @@ type (
 		UserID      string      `json:"user_id" description:"ID do dono do pedido"`
 		ProductsIDs []uuid.UUID `json:"products_ids" description:"ID dos produtos"`
 	}
+
+	OrderList struct {
+		Orders []Order `json:"orders"`
+		Limit  int     `json:"limit"`
+		Offset int     `json:"offset"`
+		Total  int64   `json:"total"`
+	}
+
+	OrderListRequest struct {
+		UserID string `json:"user_id"`
+		Limit  int    `json:"limit"`
+		Offset int    `json:"offset"`
+	}
 )
 
 func (uO *UpdateOrder) fromDomain(order *domain.Order) {
@@ -191,6 +204,38 @@ func (oH *OrdersHttpHandler) handleDeleteOrder(request *restful.Request, respons
 	response.WriteHeader(http.StatusOK)
 }
 
+func (oH *OrdersHttpHandler) handleListOrders(request *restful.Request, response *restful.Response) {
+	var oLR OrderListRequest
+	if err := request.ReadEntity(&oLR); err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	uid, err := uuid.Parse(oLR.UserID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	list, err := oH.ordersUC.ListOrders(oH.ctx, oLR.Limit, oLR.Offset, uid)
+	if err != nil {
+		_ = response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var oL OrderList
+	var ord Order
+	for _, v := range list.Orders {
+		ord.fromDomain(v)
+		oL.Orders = append(oL.Orders, ord)
+	}
+	oL.Total = list.Total
+	oL.Limit = list.Limit
+	oL.Offset = list.Offset
+
+	_ = response.WriteAsJson(oL)
+}
+
 func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws *restful.WebService) *OrdersHttpHandler {
 	handler := &OrdersHttpHandler{
 		ctx:      ctx,
@@ -204,6 +249,12 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(QueryStruct{}).
 		Returns(http.StatusOK, "ok", Order{}))
+	ws.Route(ws.POST("/orders/all").To(handler.handleListOrders).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Lista pedidos").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(OrderListRequest{}).
+		Returns(http.StatusOK, "sucesso", Order{}).
+		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
 	ws.Route(ws.POST("/orders").To(handler.handleCreateOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Cadastra pedido").
 		Metadata(restfulspec.KeyOpenAPITags, tags).

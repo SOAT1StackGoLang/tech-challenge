@@ -35,6 +35,8 @@ type OrdersRepository interface {
 	UpdateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
 	DeleteOrder(ctx context.Context, orderID uuid.UUID) error
 	SetOrderAsPaid(ctx context.Context, payment *domain.Payment) error
+	ListOrdersByUser(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error)
+	ListOrders(ctx context.Context, limit, offset int) (*domain.OrderList, error)
 }
 
 type PaymentRepository interface {

@@ -16,6 +16,91 @@ type ordersRepositoryImpl struct {
 	db  *gorm.DB
 }
 
+func (o *ordersRepositoryImpl) ListOrdersByUser(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error) {
+	var orders []Order
+	var total int64
+
+	var err error
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Where("user_id = ?", userID).
+		Limit(limit).
+		Offset(offset).
+		Order("created_at ASC").
+		Find(&orders).Error; err != nil {
+		o.log.Errorw(
+			"failed listing orders",
+			zap.String("user_id", userID.String()),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Where("user_id = ?", userID).
+		Count(&total).Error; err != nil {
+		o.log.Errorw(
+			"failed counting orders by user_id",
+			zap.String("category", userID.String()),
+			zap.Error(err),
+		)
+	}
+
+	oList := &domain.OrderList{}
+	out := make([]*domain.Order, 0, len(orders))
+
+	for _, v := range orders {
+		out = append(out, v.toDomain())
+	}
+
+	oList.Orders = out
+	oList.Total = total
+	oList.Limit = limit
+	oList.Offset = offset
+
+	return oList, err
+
+}
+
+func (o *ordersRepositoryImpl) ListOrders(ctx context.Context, limit, offset int) (*domain.OrderList, error) {
+	var orders []Order
+	var total int64
+
+	var err error
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Limit(limit).
+		Offset(offset).
+		Order("created_at ASC").
+		Find(&orders).Error; err != nil {
+		o.log.Errorw(
+			"failed listing orders",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Count(&total).Error; err != nil {
+		o.log.Errorw(
+			"failed counting orders",
+			zap.Error(err),
+		)
+	}
+
+	oList := &domain.OrderList{}
+	out := make([]*domain.Order, 0, len(orders))
+
+	for _, v := range orders {
+		out = append(out, v.toDomain())
+	}
+
+	oList.Orders = out
+	oList.Total = total
+	oList.Limit = limit
+	oList.Offset = offset
+
+	return oList, err
+}
+
 const ordersTable = "lanchonete_orders"
 
 func NewPgxOrdersRepository(log *zap.SugaredLogger, db *gorm.DB) ports.OrdersRepository {

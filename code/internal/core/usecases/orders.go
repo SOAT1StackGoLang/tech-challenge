@@ -17,6 +17,13 @@ type ordersUseCase struct {
 	prodUC     ports.ProductsUseCase
 }
 
+func (o *ordersUseCase) ListOrders(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error) {
+	if !isAdmin(o.logger, o.userUC, ctx, userID) {
+		return o.ordersRepo.ListOrdersByUser(ctx, limit, offset, userID)
+	}
+	return o.ordersRepo.ListOrders(ctx, limit, offset)
+}
+
 func NewOrdersUseCase(logger *zap.SugaredLogger, ordersRepo ports.OrdersRepository, userUC ports.UsersUseCase) ports.OrdersUseCase {
 	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC}
 }
