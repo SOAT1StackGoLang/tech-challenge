@@ -31,13 +31,12 @@ type CategoriesRepository interface {
 
 type OrdersRepository interface {
 	GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error)
-	CreateOrder(ctx context.Context, userID uuid.UUID, products []uuid.UUID) (*domain.Order, error)
-	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
-	RemoveProductsFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
-	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
-	FinishOrder(ctx context.Context, orderID uuid.UUID) error
+	CreateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
+	UpdateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
+	DeleteOrder(ctx context.Context, orderID uuid.UUID) error
+	SetOrderAsPaid(ctx context.Context, payment *domain.Payment) error
 }
 
 type PaymentRepository interface {
-	PayOrder(ctx context.Context, userID, orderID uuid.UUID) error
+	PayOrder(ctx context.Context, payment *domain.Payment) (*domain.Payment, error)
 }

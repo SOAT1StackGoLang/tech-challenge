@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
@@ -24,8 +25,8 @@ func (c *categoriesUseCase) GetCategory(ctx context.Context, id uuid.UUID) (*dom
 }
 
 func (c *categoriesUseCase) InsertCategory(ctx context.Context, userID uuid.UUID, in *domain.Category) (*domain.Category, error) {
-	if err := validateIsAdmin(c.log, c.userUC, ctx, userID); err != nil {
-		return nil, err
+	if !isAdmin(c.log, c.userUC, ctx, userID) {
+		return nil, helpers.ErrUnauthorized
 	}
 	newCat := domain.NewCategory(uuid.New(), in.CreatedAt, in.Name)
 
@@ -35,8 +36,8 @@ func (c *categoriesUseCase) InsertCategory(ctx context.Context, userID uuid.UUID
 }
 
 func (c *categoriesUseCase) DeleteCategory(ctx context.Context, userID, id uuid.UUID) error {
-	if err := validateIsAdmin(c.log, c.userUC, ctx, userID); err != nil {
-		return err
+	if !isAdmin(c.log, c.userUC, ctx, userID) {
+		return helpers.ErrUnauthorized
 	}
 
 	err := c.catRepo.DeleteCategory(ctx, id)

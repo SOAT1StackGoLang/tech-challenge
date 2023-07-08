@@ -1,22 +1,10 @@
 package domain
 
 import (
+	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"time"
-)
-
-type OrderStatus int
-
-const (
-	OrderStatusUnset OrderStatus = iota
-	OrderStatusOpen
-	OrderStatusPaid
-	OrderStatusReverted
-	OrderStatusAccepted
-	OrderStatusPreparing
-	OrderStatusInTransit
-	OrderStatusDelivered
 )
 
 type User struct {
@@ -38,15 +26,20 @@ type Product struct {
 	DeletedAt   time.Time
 	Name        string
 	Description string
-	Price       string
+	Price       decimal.Decimal
 }
 
 func ParseProductToDomain(ID uuid.UUID, categoryID uuid.UUID, createdAt time.Time, updatedAt time.Time, deletedAt time.Time, name string, description string, price string) *Product {
-	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: createdAt, UpdatedAt: updatedAt, DeletedAt: deletedAt, Name: name, Description: description, Price: price}
+	p, err := helpers.ParseDecimalFromString(price)
+	if err != nil {
+		return nil
+	}
+	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: createdAt, UpdatedAt: updatedAt, DeletedAt: deletedAt, Name: name, Description: description, Price: p}
 }
 
 func NewProduct(ID uuid.UUID, categoryID uuid.UUID, name string, description string, price string) *Product {
-	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: time.Now(), Name: name, Description: description, Price: price}
+	p, _ := helpers.ParseDecimalFromString(price)
+	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: time.Now(), Name: name, Description: description, Price: p}
 }
 
 type ProductList struct {
@@ -68,13 +61,17 @@ type Order struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   time.Time
-	Price       string
+	Price       decimal.Decimal
 	Status      string
 	ProductsIDs []uuid.UUID
 }
 
-func NewOrder(ID uuid.UUID, userID uuid.UUID, paymentID uuid.UUID, createdAt time.Time, products []uuid.UUID) *Order {
-	return &Order{ID: ID, UserID: userID, PaymentID: paymentID, CreatedAt: createdAt, ProductsIDs: products}
+func ParseToDomainOrder(ID uuid.UUID, userID uuid.UUID, paymentID uuid.UUID, price decimal.Decimal, status string, productsIDs []uuid.UUID) *Order {
+	return &Order{ID: ID, UserID: userID, PaymentID: paymentID, Price: price, Status: status, ProductsIDs: productsIDs}
+}
+
+func NewOrder(ID uuid.UUID, userID uuid.UUID, createdAt time.Time, products []uuid.UUID) *Order {
+	return &Order{ID: ID, UserID: userID, CreatedAt: createdAt, ProductsIDs: products}
 }
 
 type Category struct {
@@ -93,7 +90,7 @@ type Payment struct {
 	CreatedAt time.Time
 	OrderID   uuid.UUID
 	UserID    uuid.UUID
-	Price     string
+	Price     decimal.Decimal
 }
 
 func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, userID uuid.UUID) *Payment {

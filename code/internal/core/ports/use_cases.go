@@ -29,12 +29,12 @@ type CategoriesUseCase interface {
 }
 
 type OrdersUseCase interface {
-	GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error)
+	GetOrder(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error)
 	CreateOrder(ctx context.Context, userID uuid.UUID, products []uuid.UUID) (*domain.Order, error)
-	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
-	RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) error
+	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (*domain.Order, error)
+	RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (*domain.Order, error)
 	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
-	SetOrderAsPaid(ctx context.Context, userID, orderID uuid.UUID) error
+	SetOrderAsPaid(ctx context.Context, payment *domain.Payment) error
 }
 
 type PaymentUseCase interface {

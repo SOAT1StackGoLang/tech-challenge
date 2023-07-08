@@ -2,12 +2,9 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
-	"github.com/shopspring/decimal"
-	"strings"
-
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"time"
 )
 
@@ -55,7 +52,7 @@ func (p *Product) toDomain() *domain.Product {
 		UpdatedAt:   p.UpdatedAt.Time,
 		Name:        p.Name,
 		Description: p.Description,
-		Price:       p.Price.String(),
+		Price:       p.Price,
 	}
 }
 
@@ -64,22 +61,11 @@ func (p *Product) fromDomain(dProd *domain.Product) {
 		p = &Product{}
 	}
 
-	var decimalValue decimal.Decimal
-	var err error
-	if dProd.Price != "" {
-		decimalValue, err = decimal.NewFromString(dProd.Price)
-		if err != nil {
-			return
-		}
-	} else {
-		decimalValue = decimal.NewFromInt(0)
-	}
-
 	p.ID = dProd.ID
 	p.Name = dProd.Name
 	p.CategoryID = dProd.CategoryID
 	p.Description = dProd.Description
-	p.Price = decimalValue
+	p.Price = dProd.Price
 }
 
 type ProductList struct {
@@ -132,30 +118,51 @@ type Order struct {
 	Products  []uuid.UUID `gorm:"type:jsonb"`
 }
 
-func (o *Order) newFromDomain(userID uuid.UUID, products []uuid.UUID) {
+func (o *Order) newFromDomain(order *domain.Order) {
 	if o == nil {
 		o = &Order{}
 	}
-	o = &Order{UserID: userID, Products: products, CreatedAt: time.Now(), Status: "OPEN"}
+	o = &Order{ID: uuid.New(), UserID: order.UserID, Products: order.ProductsIDs, CreatedAt: time.Now(), Status: "OPEN"}
 }
 
-func (o *Order) toDomain(products ...[]uuid.UUID) *domain.Order {
-	price := fmt.Sprintf("R$ %s", o.Price.StringFixedBank(2))
-	order := &domain.Order{
-		ID:        o.ID,
-		UserID:    o.UserID,
-		PaymentID: o.PaymentID,
-		CreatedAt: o.CreatedAt,
-		UpdatedAt: o.UpdatedAt.Time,
-		DeletedAt: o.DeletedAt.Time,
-		Status:    o.Status,
-		Price:     strings.Replace(price, ".", ",", -1),
+func (o *Order) fromDomain(order *domain.Order) {
+	if o == nil {
+		o = &Order{}
 	}
-	if products != nil {
-		order.ProductsIDs = products[1]
-	}
+	o.ID = order.ID
+	o.UserID = order.UserID
+	o.PaymentID = order.PaymentID
+	o.CreatedAt = order.CreatedAt
+	o.Status = order.Status
+	o.Price = order.Price
+	o.Products = order.ProductsIDs
 
-	return order
+	if !order.UpdatedAt.IsZero() {
+		o.UpdatedAt = sql.NullTime{
+			Time:  order.UpdatedAt,
+			Valid: true,
+		}
+	}
+	if !order.DeletedAt.IsZero() {
+		o.DeletedAt = sql.NullTime{
+			Time:  order.DeletedAt,
+			Valid: true,
+		}
+	}
+}
+
+func (o *Order) toDomain() *domain.Order {
+	return &domain.Order{
+		ID:          o.ID,
+		UserID:      o.UserID,
+		PaymentID:   o.PaymentID,
+		CreatedAt:   o.CreatedAt,
+		UpdatedAt:   o.UpdatedAt.Time,
+		DeletedAt:   o.DeletedAt.Time,
+		Status:      o.Status,
+		Price:       o.Price,
+		ProductsIDs: o.Products,
+	}
 }
 
 type Payment struct {

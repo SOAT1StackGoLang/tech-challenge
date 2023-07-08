@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -54,7 +53,7 @@ func (p *Product) fromDomain(product *domain.Product) {
 		p = &Product{}
 	}
 
-	price := fmt.Sprintf("R$ %s", product.Price)
+	price := helpers.ParseDecimalToString(product.Price)
 
 	p.ID = product.ID.String()
 	p.CreatedAt = product.CreatedAt
@@ -141,7 +140,7 @@ func NewProductsHttpHandler(ctx context.Context, productsUC ports.ProductsUseCas
 	ws.Route(ws.DELETE("/products").To(handler.DeleteProduct).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Remove produto").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(DeletionStruct{}). // from the request
+		Reads(QueryStruct{}). // from the request
 		Returns(200, "Produto removido com sucesso", nil).
 		Returns(500, "Erro ao remover produto", nil))
 
@@ -227,7 +226,7 @@ func (pH *ProductsHttpHandler) UpdateProduct(request *restful.Request, response 
 	_ = response.WriteAsJson(prod)
 }
 func (pH *ProductsHttpHandler) DeleteProduct(request *restful.Request, response *restful.Response) {
-	var dS DeletionStruct
+	var dS QueryStruct
 
 	if err := request.ReadEntity(&dS); err != nil {
 		_ = response.WriteError(http.StatusBadRequest, err)

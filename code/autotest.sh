@@ -142,7 +142,7 @@ fi
 
 # Create product 2
 echo -e "\n-----"
-echo -e "${YELLOW}Creating Product${NC}"
+echo -e "${YELLOW}Creating Product 2${NC}"
 PRODUCT2=$(curl -s --location 'localhost:8000/v1/products' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -154,6 +154,22 @@ PRODUCT2=$(curl -s --location 'localhost:8000/v1/products' \
 }')
 echo -e "$PRODUCT2" | jq
 PRODUCT_ID2=$(echo $PRODUCT2 | jq -r '.id')
+sleep 2
+
+# Create product 3
+echo -e "\n-----"
+echo -e "${YELLOW}Creating Product 3${NC}"
+PRODUCT3=$(curl -s --location 'localhost:8000/v1/products' \
+--header 'Content-Type: application/json' \
+--data '{
+    "name": "Coca Cola 2L",
+    "description": "Coca Cola 2L",
+    "price": "5.00",
+    "category_id": "'$CATEGORY_ID'",
+    "user_id": "123e4567-e89b-12d3-a456-426614174000"
+}')
+echo -e "$PRODUCT3" | jq
+PRODUCT_ID3=$(echo $PRODUCT3 | jq -r '.id')
 sleep 2
 
 # List products by category
@@ -186,8 +202,34 @@ PRODUCT=$(curl -s --location localhost:8000/v1/products/$PRODUCT_ID)
 echo $PRODUCT
 sleep 2
 
-# Payment
+# Create order
 echo -e "\n-----"
-echo -e "${YELLOW}Payment${NC}"
-echo -e "\n-----"
+echo -e "${YELLOW}Creating Order${NC}"
+ORDER=$(curl -s --location --request POST 'localhost:8000/v1/orders' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+   "products_ids": [
+      "'$PRODUCT_ID2'"
+   ],
+   "user_id": "123e4567-e89b-12d3-a456-426614174000"
+}')
+echo -e "ORDER" | jq
+ORDER_ID=$(echo ORDER | jq -r '.id')
+sleep 2
+
+## Pay Order
+#echo -e "\n-----"
+#echo -e "${YELLOW}Creating Product${NC}"
+#PRODUCT2=$(curl -s --location 'localhost:8000/v1/products' \
+#--header 'Content-Type: application/json' \
+#--data '{
+#    "name": "Coca Cola 2L",
+#    "description": "Coca Cola 2L",
+#    "price": "5.00",
+#    "category_id": "'$CATEGORY_ID'",
+#    "user_id": "123e4567-e89b-12d3-a456-426614174000"
+#}')
+#echo -e "$PRODUCT2" | jq
+#PRODUCT_ID2=$(echo $PRODUCT2 | jq -r '.id')
+#sleep 2
 

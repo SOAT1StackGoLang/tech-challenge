@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
@@ -37,9 +38,8 @@ func (p productsUseCase) GetProduct(ctx context.Context, id uuid.UUID) (*domain.
 }
 
 func (p productsUseCase) InsertProduct(ctx context.Context, userID uuid.UUID, in *domain.Product) (*domain.Product, error) {
-	err := validateIsAdmin(p.logger, p.userUC, ctx, userID)
-	if err != nil {
-		return nil, err
+	if !isAdmin(p.logger, p.userUC, ctx, userID) {
+		return nil, helpers.ErrUnauthorized
 	}
 
 	out, err := p.productRepo.InsertProduct(ctx, in)
@@ -47,23 +47,20 @@ func (p productsUseCase) InsertProduct(ctx context.Context, userID uuid.UUID, in
 }
 
 func (p productsUseCase) UpdateProduct(ctx context.Context, userID uuid.UUID, in *domain.Product) (*domain.Product, error) {
-	err := validateIsAdmin(p.logger, p.userUC, ctx, userID)
-	if err != nil {
-		return nil, err
+	if !isAdmin(p.logger, p.userUC, ctx, userID) {
+		return nil, helpers.ErrUnauthorized
 	}
 
 	out, err := p.productRepo.UpdateProduct(ctx, in)
-	return out, nil
+	return out, err
 }
 
 func (p productsUseCase) DeleteProduct(ctx context.Context, userID uuid.UUID, prodID uuid.UUID) error {
-	err := validateIsAdmin(p.logger, p.userUC, ctx, userID)
-	if err != nil {
-		return err
+	if !isAdmin(p.logger, p.userUC, ctx, userID) {
+		return helpers.ErrUnauthorized
 	}
 
-	err = p.productRepo.DeleteProduct(ctx, prodID)
-	return err
+	return p.productRepo.DeleteProduct(ctx, prodID)
 }
 
 func (p productsUseCase) ListProductsByCategory(ctx context.Context, categoryID uuid.UUID, limit, offset int) (*domain.ProductList, error) {
