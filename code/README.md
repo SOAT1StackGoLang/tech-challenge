@@ -2,6 +2,7 @@
 
 This directory contains the application code and tests.
 
+# Scripts
 
 ## run.sh
 
@@ -38,3 +39,7 @@ To recreate all containers and run the autotest script, run:
 ```shellscript
 ./run.sh recreate-all-with-tests
 ```
+
+## autotest.sh
+
+[Autotest](AUTOTEST.md)

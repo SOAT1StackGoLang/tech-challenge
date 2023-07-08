@@ -48,6 +48,9 @@ jobs:
   linter:
     uses: ./.github/workflows/golangci-lint.yml
     needs: build-and-push
+  autotest:
+    uses: ./.github/workflows/autotest.yml
+    needs: build-and-push
   # snyk:
   #   uses: ./.github/workflows/snyk-security.yml
   #   needs: build-and-push

@@ -159,10 +159,9 @@ sleep 2
 # List products by category
 echo -e "\n-----"
 echo -e "${YELLOW}Listing Products by Category${NC}"
-PRODUCTS=$(curl -s --location localhost:8000/v1/products?category-id=$CATEGORY_ID&limit=10&offset=0)
+PRODUCTS=$(curl -s --location "localhost:8000/v1/products?category-id=$CATEGORY_ID&limit=10&offset=0")
 if command -v jq &> /dev/null; then
     echo $PRODUCTS | jq
-    echo $PRODUCTS
 else
     echo $PRODUCTS
 fi
@@ -186,4 +185,9 @@ echo -e "${YELLOW}Getting Product after delete${NC}"
 PRODUCT=$(curl -s --location localhost:8000/v1/products/$PRODUCT_ID)
 echo $PRODUCT
 sleep 2
+
+# Payment
 echo -e "\n-----"
+echo -e "${YELLOW}Payment${NC}"
+echo -e "\n-----"
+
