@@ -14,5 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build the stack
-        run: cd code && ./run.sh recreate-all-with-tests
+      - name: Build the stack and start services
+        run: cd code && ./run.sh start-all
+      - name: Run the tests
+        run: cd code && ./autotest.sh
