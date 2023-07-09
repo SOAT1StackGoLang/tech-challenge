@@ -25,3 +25,4 @@ code/main
 .DS_store
 
 .vscode/launch.json
+code/cmd/web/__debug_bin

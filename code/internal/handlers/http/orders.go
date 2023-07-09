@@ -47,14 +47,14 @@ type (
 
 	OrderList struct {
 		Orders []Order `json:"orders"`
-		Limit  int     `json:"limit"`
+		Limit  int     `json:"limit" default:"10"`
 		Offset int     `json:"offset"`
 		Total  int64   `json:"total"`
 	}
 
 	OrderListRequest struct {
 		UserID string `json:"user_id"`
-		Limit  int    `json:"limit"`
+		Limit  int    `json:"limit" default:"10" description:"Quantidade de registros"`
 		Offset int    `json:"offset"`
 	}
 )
