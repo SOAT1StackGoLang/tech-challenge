@@ -8,7 +8,7 @@ create table public.lanchonete_orders
     products   json           not null,
     price      numeric(10, 2) not null,
     status     varchar(20)    not null,
-    payment_id uuid unique,
+    payment_id uuid,
 
     constraint lanchonete_orders_pk
         PRIMARY KEY (id)
