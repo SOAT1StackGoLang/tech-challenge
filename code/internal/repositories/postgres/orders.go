@@ -3,12 +3,13 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"time"
 )
 
 type ordersRepositoryImpl struct {
@@ -129,8 +130,8 @@ func (o *ordersRepositoryImpl) GetOrder(ctx context.Context, orderID uuid.UUID) 
 func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error) {
 	var out *domain.Order
 
-	var in *Order
-	in.newFromDomain(order)
+	in := SaveOrder{}
+	in.fromDomain(order)
 
 	var err error
 	if err = o.db.WithContext(ctx).Table(ordersTable).Create(&in).Error; err != nil {

@@ -2,10 +2,12 @@ package postgres
 
 import (
 	"database/sql"
+	"encoding/json"
+	"time"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"time"
 )
 
 type User struct {
@@ -118,11 +120,80 @@ type Order struct {
 	Products  []uuid.UUID `gorm:"type:jsonb"`
 }
 
-func (o *Order) newFromDomain(order *domain.Order) {
+type SaveOrder struct {
+	ID        uuid.UUID `gorm:"id,primaryKey"`
+	UserID    uuid.UUID
+	PaymentID uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt sql.NullTime
+	DeletedAt sql.NullTime
+	Price     decimal.Decimal
+	Status    string
+	Products  json.RawMessage `json:"products" gorm:"type:jsonb"`
+}
+
+func (o *SaveOrder) fromDomain(order *domain.Order) {
 	if o == nil {
-		o = &Order{}
+		o = &SaveOrder{}
 	}
-	o = &Order{ID: uuid.New(), UserID: order.UserID, Products: order.ProductsIDs, CreatedAt: time.Now(), Status: "OPEN"}
+	o.ID = order.ID
+	o.UserID = order.UserID
+	o.PaymentID = order.PaymentID
+	o.CreatedAt = order.CreatedAt
+	o.Status = order.Status
+	o.Price = order.Price
+
+	// Convert Products slice of uuid.UUID to a JSON array
+	productsJSON, err := json.Marshal(order.ProductsIDs)
+	if err != nil {
+		// Handle error
+	}
+
+	// Create a new json.RawMessage object from the JSON-encoded byte slice
+	o.Products = json.RawMessage(productsJSON)
+
+	if !order.UpdatedAt.IsZero() {
+		o.UpdatedAt = sql.NullTime{
+			Time:  order.UpdatedAt,
+			Valid: true,
+		}
+	}
+	if !order.DeletedAt.IsZero() {
+		o.DeletedAt = sql.NullTime{
+			Time:  order.DeletedAt,
+			Valid: true,
+		}
+	}
+}
+
+func (o *SaveOrder) toDomain() *domain.Order {
+	// Unmarshal the JSON-encoded byte slice to a slice of strings
+	var products []string
+	err := json.Unmarshal(o.Products, &products)
+	if err != nil {
+		// Handle error
+	}
+
+	// Convert the slice of strings to a slice of uuid.UUID values
+	productIDs := make([]uuid.UUID, len(products))
+	for i, id := range products {
+		productIDs[i], err = uuid.Parse(id)
+		if err != nil {
+			// Handle error
+		}
+	}
+
+	return &domain.Order{
+		ID:          o.ID,
+		UserID:      o.UserID,
+		PaymentID:   o.PaymentID,
+		CreatedAt:   o.CreatedAt,
+		UpdatedAt:   o.UpdatedAt.Time,
+		DeletedAt:   o.DeletedAt.Time,
+		Status:      o.Status,
+		Price:       o.Price,
+		ProductsIDs: productIDs,
+	}
 }
 
 func (o *Order) fromDomain(order *domain.Order) {
