@@ -11,25 +11,31 @@ import (
 	restful "github.com/emicklei/go-restful/v3"
 )
 
-type UserHandler struct {
-	ctx          context.Context
-	usersUseCase ports.UsersUseCase
-}
+type (
+	UserHandler struct {
+		ctx          context.Context
+		usersUseCase ports.UsersUseCase
+	}
 
-type InsertionUser struct {
-	Document string `json:"document" description:"CPF do cliente"`
-	Name     string `json:"name" description:"Nome do cliente"`
-	Email    string `json:"email" description:"Email do cliente"`
-}
+	InsertionUser struct {
+		Document string `json:"document" description:"CPF do cliente"`
+		Name     string `json:"name" description:"Nome do cliente"`
+		Email    string `json:"email" description:"Email do cliente"`
+	}
 
-type ValidatedUser struct {
-	ID string `json:"id" description:"ID do cliente no sistema"`
-}
+	ValidatedUser struct {
+		ID string `json:"id" description:"ID do cliente no sistema"`
+	}
 
-type User struct {
-	ID string `json:"id" description:"ID do cliente no sistema"`
-	InsertionUser
-}
+	User struct {
+		ID string `json:"id" description:"ID do cliente no sistema"`
+		InsertionUser
+	}
+
+	QueryUser struct {
+		Document string `json:"document"`
+	}
+)
 
 func (u *User) fromDomain(user *domain.User) {
 	if u == nil {
@@ -73,10 +79,10 @@ func NewUserHandler(
 		Returns(200, "Cliente cadastrado", User{}).
 		Returns(500, "Erro ao cadastrar cliente", nil))
 
-	ws.Route(ws.GET("/users/validate/{document}").To(handler.Validate).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+	ws.Route(ws.POST("/users/validate").To(handler.Validate).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Identifica cliente via CPF. Retorna o ID do cliente no sistema, caso haja cliente cadastrado com esse CPF").
-		Param(ws.PathParameter("document", "CPF do cliente").DataType("string")).
 		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(QueryUser{}).
 		Writes(ValidatedUser{}). // on the response
 		Returns(200, "OK", ValidatedUser{}).
 		Returns(500, "CPF não cadastrado ou outro erro", nil))
@@ -104,9 +110,13 @@ func (uH *UserHandler) Create(req *restful.Request, resp *restful.Response) {
 }
 
 func (uH *UserHandler) Validate(req *restful.Request, resp *restful.Response) {
-	document := req.PathParameter("document")
+	var queryUser QueryUser
+	if err := req.ReadEntity(&queryUser); err != nil {
+		_ = resp.WriteError(http.StatusBadRequest, err)
+		return
+	}
 
-	result, err := uH.usersUseCase.ValidateUser(uH.ctx, document)
+	result, err := uH.usersUseCase.ValidateUser(uH.ctx, queryUser.Document)
 	if err != nil {
 		_ = resp.WriteError(http.StatusInternalServerError, err)
 		return
