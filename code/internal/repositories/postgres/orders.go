@@ -65,7 +65,7 @@ func (o *ordersRepositoryImpl) ListOrdersByUser(ctx context.Context, limit, offs
 func (o *ordersRepositoryImpl) ListOrders(ctx context.Context, limit, offset int) (*domain.OrderList, error) {
 	var total int64
 
-	var saveOrders []SaveOrder
+	var saveOrders []Order
 
 	var err error
 	if err = o.db.WithContext(ctx).Table(ordersTable).
@@ -131,7 +131,7 @@ func (o *ordersRepositoryImpl) GetOrder(ctx context.Context, orderID uuid.UUID) 
 func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error) {
 	var out *domain.Order
 
-	in := SaveOrder{}
+	in := Order{}
 	in.fromDomain(order)
 	in.Status = "ABERTO"
 
