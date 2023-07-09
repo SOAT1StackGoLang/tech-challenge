@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/usecases"
 	"time"
 
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
@@ -192,19 +193,18 @@ func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, orderID uuid.UUI
 }
 
 func (o *ordersRepositoryImpl) SetOrderAsPaid(ctx context.Context, payment *domain.Payment) (err error) {
-	status := "PAGA"
 	updatedAt := sql.NullTime{
 		Time:  time.Now(),
 		Valid: true,
 	}
 
 	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Where("id = ?", payment.OrderID).
 		UpdateColumns(map[string]any{
-			"status":     status,
+			"status":     usecases.OrderPaidStatus,
 			"updated_at": updatedAt,
 			"payment_id": payment.ID,
 		}).
-		Where("id = ?", payment.OrderID).
 		Error; err != nil {
 		o.log.Errorw(
 			"db failed finishing order",
