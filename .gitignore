@@ -19,3 +19,10 @@
 
 # Go workspace file
 go.work
+code/main
+
+# Ignore os arquivos de sistema do Mac
+.DS_store
+
+.vscode/launch.json
+code/cmd/web/__debug_bin

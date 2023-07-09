@@ -1,0 +1,2 @@
+insert into public.lanchonete_users (id, created_at, name, document, email, is_admin)
+values ('123e4567-e89b-12d3-a456-426614174000', now(), 'João Silva e Sousa', '97580053080','joao@bing.com.br', true);
