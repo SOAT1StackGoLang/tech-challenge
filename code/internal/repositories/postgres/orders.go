@@ -63,15 +63,16 @@ func (o *ordersRepositoryImpl) ListOrdersByUser(ctx context.Context, limit, offs
 }
 
 func (o *ordersRepositoryImpl) ListOrders(ctx context.Context, limit, offset int) (*domain.OrderList, error) {
-	var orders []Order
 	var total int64
+
+	var saveOrders []SaveOrder
 
 	var err error
 	if err = o.db.WithContext(ctx).Table(ordersTable).
 		Limit(limit).
 		Offset(offset).
 		Order("created_at ASC").
-		Find(&orders).Error; err != nil {
+		Scan(&saveOrders).Error; err != nil {
 		o.log.Errorw(
 			"failed listing orders",
 			zap.Error(err),
@@ -88,9 +89,9 @@ func (o *ordersRepositoryImpl) ListOrders(ctx context.Context, limit, offset int
 	}
 
 	oList := &domain.OrderList{}
-	out := make([]*domain.Order, 0, len(orders))
+	out := make([]*domain.Order, 0, len(saveOrders))
 
-	for _, v := range orders {
+	for _, v := range saveOrders {
 		out = append(out, v.toDomain())
 	}
 

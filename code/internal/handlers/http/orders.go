@@ -242,11 +242,12 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 
 	tags := []string{"orders"}
 
-	ws.Route(ws.GET("/orders/{id}").To(handler.handleGetOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
-		Doc("Obtém dados do pedido em função do ID fornecido").
+	ws.Route(ws.POST("/orders/get").To(handler.handleGetOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Obtém dados do pedido em função dos dados fornecidos").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(QueryStruct{}).
-		Returns(http.StatusOK, "ok", Order{}))
+		Returns(http.StatusOK, "ok", Order{}).
+		Returns(http.StatusBadRequest, "bad request", nil))
 	ws.Route(ws.POST("/orders/all").To(handler.handleListOrders).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Lista pedidos").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
