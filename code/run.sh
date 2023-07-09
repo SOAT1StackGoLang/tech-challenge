@@ -104,9 +104,9 @@ case "$1" in
 
     $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml down -v
     # Start all containers
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up db -d
+    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up -d db
     sleep 5
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up app -d
+    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up -d app
     $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml logs db &
     sleep 2
     $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml logs app &
