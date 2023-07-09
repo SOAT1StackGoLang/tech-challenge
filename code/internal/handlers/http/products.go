@@ -43,7 +43,7 @@ type (
 
 	ProductList struct {
 		Products []Product `json:"products"`
-		Limit    int       `json:"limit"`
+		Limit    int       `json:"limit" default:"10"`
 		Offset   int       `json:"offset"`
 		Total    int64     `json:"total"`
 	}
