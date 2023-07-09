@@ -59,7 +59,7 @@ func SetupCode() {
 	prodUseCase := usecases.NewProductsUseCase(prodRepo, userUseCase, log)
 
 	orderRepo := pgxrepo.NewPgxOrdersRepository(log, gormDB)
-	orderUseCase := usecases.NewOrdersUseCase(log, orderRepo, userUseCase)
+	orderUseCase := usecases.NewOrdersUseCase(log, orderRepo, userUseCase, prodUseCase)
 
 	paymenteUseCase := usecases.NewPaymentsUseCase(log, orderUseCase)
 

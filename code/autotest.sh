@@ -162,9 +162,9 @@ echo -e "${YELLOW}Creating Product 3${NC}"
 PRODUCT3=$(curl -s --location 'localhost:8000/v1/products' \
 --header 'Content-Type: application/json' \
 --data '{
-    "name": "Coca Cola 2L",
-    "description": "Coca Cola 2L",
-    "price": "5.00",
+    "name": "Coca Cola 1L",
+    "description": "Coca Cola 1L",
+    "price": "4.00",
     "category_id": "'$CATEGORY_ID'",
     "user_id": "123e4567-e89b-12d3-a456-426614174000"
 }')
@@ -209,27 +209,13 @@ ORDER=$(curl -s --location --request POST 'localhost:8000/v1/orders' \
 --header 'Content-Type: application/json' \
 --data-raw '{
    "products_ids": [
-      "'"$PRODUCT_ID2"'"
+      "'$PRODUCT_ID2'",
+      "'$PRODUCT_ID3'"
    ],
    "user_id": "123e4567-e89b-12d3-a456-426614174000"
 }')
-echo -e "ORDER" | jq
-ORDER_ID=$(echo ORDER | jq -r '.id')
+echo -e "$ORDER" | jq
+ORDER_ID=$(echo $ORDER | jq -r '.id')
 sleep 2
 
-## Pay Order
-#echo -e "\n-----"
-#echo -e "${YELLOW}Creating Product${NC}"
-#PRODUCT2=$(curl -s --location 'localhost:8000/v1/products' \
-#--header 'Content-Type: application/json' \
-#--data '{
-#    "name": "Coca Cola 2L",
-#    "description": "Coca Cola 2L",
-#    "price": "5.00",
-#    "category_id": "'$CATEGORY_ID'",
-#    "user_id": "123e4567-e89b-12d3-a456-426614174000"
-#}')
-#echo -e "$PRODUCT2" | jq
-#PRODUCT_ID2=$(echo $PRODUCT2 | jq -r '.id')
-#sleep 2
 

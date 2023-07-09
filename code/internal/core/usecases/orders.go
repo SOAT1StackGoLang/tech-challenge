@@ -2,12 +2,14 @@ package usecases
 
 import (
 	"context"
+
+	"time"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"time"
 )
 
 type ordersUseCase struct {
@@ -24,8 +26,8 @@ func (o *ordersUseCase) ListOrders(ctx context.Context, limit, offset int, userI
 	return o.ordersRepo.ListOrders(ctx, limit, offset)
 }
 
-func NewOrdersUseCase(logger *zap.SugaredLogger, ordersRepo ports.OrdersRepository, userUC ports.UsersUseCase) ports.OrdersUseCase {
-	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC}
+func NewOrdersUseCase(logger *zap.SugaredLogger, ordersRepo ports.OrdersRepository, userUC ports.UsersUseCase, prodUC ports.ProductsUseCase) ports.OrdersUseCase {
+	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC}
 }
 
 func (o *ordersUseCase) GetOrder(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error) {
