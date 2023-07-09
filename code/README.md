@@ -2,6 +2,28 @@
 
 This directory contains the application code and tests.
 
+## Directory Structure
+
+```bash
+code/
+├── cmd
+│   ├── migrations
+│   │   └── files
+│   └── web
+├── helpers
+└── internal
+    ├── core
+    │   ├── domain
+    │   ├── ports
+    │   └── usecases
+    ├── handlers
+    │   └── http
+    ├── repositories
+    │   └── postgres
+    └── setup
+        └── apidocs
+```
+
 # Scripts
 
 ## run.sh
@@ -23,6 +45,7 @@ To use the script, open a terminal and navigate to the root directory of the pro
 - `destroy-all`: Destroys all containers and their volumes.
 - `recreate-all`: Destroys all containers and their volumes and starts all containers.
 - `recreate-all-with-tests`: Destroys all containers and their volumes, starts all containers, and runs the autotest script.
+- `recreate-all-with-tests-no-build`: Destroys all containers and their volumes, then starts all containers and runs the autotest script without building the application container, pulling the image from the current commit-sha(must being a builded commit).
 - `logs-all`: Shows the logs of all containers.
 - `logs-tail`: Shows the logs of all containers and follows the output.
 
@@ -38,6 +61,24 @@ To recreate all containers and run the autotest script, run:
 
 ```shellscript
 ./run.sh recreate-all-with-tests
+```
+
+or if your commit-sha was previous builded you can run
+
+```shellscript
+./run.sh recreate-all-with-tests-no-build
+```
+
+files locations for the scripts:
+
+```bash
+devsecops/local/
+├── README.md
+├── code
+│   └── Dockerfile
+├── docker-compose.yml
+└── initdb
+    └── 00-configs.sql
 ```
 
 ## autotest.sh

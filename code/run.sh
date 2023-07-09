@@ -2,7 +2,7 @@
 
 # Define a function to print usage information
 usage() {
-  echo "Usage: $0 [start-db|destroy-db|start-app|build-app|start-all|destroy-all|recreate-all|logs-all|logs-tail]" 1>&2
+  echo "Usage: $0 [start-db|destroy-db|start-app|build-app|start-all|destroy-all|recreate-all|recreate-all-with-tests|recreate-all-with-tests-no-build|logs-all|logs-tail]" 1>&2
   exit 1
 }
 
@@ -99,8 +99,25 @@ case "$1" in
   recreate-all-with-tests-no-build)
     # Destroy all containers and their volumes
     commit_sha=$(git rev-parse --short HEAD)
-    #tag_docker_image "local_app:$commit_sha" "local-app-image-retag:latest" 
-    tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:run-with-pull" "local-app-image-retag:latest" 
+    tag_docker_image "local_app:$commit_sha" "local-app-image-retag:latest" 
+    #tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:develop" "local-app-image-retag:latest" 
+
+    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml down -v
+    # Start all containers
+    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up db -d
+    sleep 5
+    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up app -d
+    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml logs db &
+    sleep 2
+    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml logs app &
+    sleep 10
+    ./autotest.sh
+    ;;
+  recreate-all-with-tests-no-build-branch)
+    # Destroy all containers and their volumes
+    commit_sha=$(git rev-parse --short HEAD)
+    tag_docker_image "local_app:$commit_sha" "local-app-image-retag:latest"
+    #tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:develop" "local-app-image-retag:latest" 
 
     $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml down -v
     # Start all containers
