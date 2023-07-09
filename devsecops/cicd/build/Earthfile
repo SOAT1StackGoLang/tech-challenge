@@ -45,7 +45,7 @@ docker:
     #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
     ## enable multiple debug version with shell
     #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
-    FROM --platform=$TARGETPLATFORM golang:alpine
+    FROM --platform=$TARGETPLATFORM alpine:latest
     LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
     RUN adduser -D appuser
     USER appuser
