@@ -29,7 +29,7 @@ func (p *productsRepositoryImpl) GetProductsPriceSumByID(ctx context.Context, id
 	if err := p.db.WithContext(ctx).Table(productsTable).
 		Select("id, price").
 		Where("id IN (?)", ids).
-		Find(&itemsAndPrices).
+		Scan(&itemsAndPrices).
 		Error; err != nil {
 		p.log.Errorw(
 			"db failed list products and price",
@@ -44,9 +44,12 @@ func (p *productsRepositoryImpl) GetProductsPriceSumByID(ctx context.Context, id
 		RequestedAt: time.Now(),
 	}
 
+	var calc decimal.Decimal
 	for _, v := range itemsAndPrices {
-		prodsSum.Sum.Add(v.Price)
+		calc = prodsSum.Sum.Add(v.Price.Abs())
 	}
+
+	prodsSum.Sum = calc.Abs()
 
 	return prodsSum, nil
 }

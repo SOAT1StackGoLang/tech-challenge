@@ -43,13 +43,14 @@ func (o *ordersUseCase) GetOrder(ctx context.Context, userID, orderID uuid.UUID)
 }
 
 func (o *ordersUseCase) CreateOrder(ctx context.Context, userID uuid.UUID, products []uuid.UUID) (*domain.Order, error) {
-	_, err := o.prodUC.GetProductsPriceSumByID(ctx, products)
+	prodSum, err := o.prodUC.GetProductsPriceSumByID(ctx, products)
 	if err != nil {
 		return nil, err
 	}
 
 	var order *domain.Order
 	order = domain.NewOrder(uuid.New(), userID, time.Now(), products)
+	order.Price = prodSum.Sum
 
 	return o.ordersRepo.CreateOrder(ctx, order)
 }

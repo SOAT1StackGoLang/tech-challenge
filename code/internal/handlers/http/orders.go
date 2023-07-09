@@ -35,9 +35,8 @@ type (
 	}
 
 	UpdateOrder struct {
-		ID          string      `json:"id" description:"ID do Produto"`
-		UserID      string      `json:"user_id" description:"ID do dono do pedido"`
-		ProductsIDs []uuid.UUID `json:"products_ids" description:"ID dos produtos"`
+		ID string `json:"id" description:"ID do Produto"`
+		InsertionOrder
 	}
 
 	OrderList struct {
@@ -59,9 +58,8 @@ func (uO *UpdateOrder) fromDomain(order *domain.Order) {
 		uO = &UpdateOrder{}
 	}
 
+	uO.InsertionOrder.fromDomain(order)
 	uO.ID = order.ID.String()
-	uO.UserID = order.UserID.String()
-	uO.ProductsIDs = order.ProductsIDs
 }
 
 func (iO *InsertionOrder) fromDomain(order *domain.Order) {
@@ -84,7 +82,7 @@ func (o *Order) fromDomain(order *domain.Order) {
 	o.UpdateOrder = uO
 
 	var p string
-	if p != "" {
+	if !order.Price.IsZero() {
 		p = helpers.ParseDecimalToString(order.Price)
 		o.Price = p
 	}
@@ -152,9 +150,9 @@ func (oH *OrdersHttpHandler) handleAddProductsIntoOrder(request *restful.Request
 		return
 	}
 	id := helpers.SafeUUIDFromString(addRequest.ID)
-	uid := helpers.SafeUUIDFromString(addRequest.UserID)
+	uid := helpers.SafeUUIDFromString(addRequest.InsertionOrder.UserID)
 
-	order, err := oH.ordersUC.InsertProductsIntoOrder(oH.ctx, uid, id, addRequest.ProductsIDs)
+	order, err := oH.ordersUC.InsertProductsIntoOrder(oH.ctx, uid, id, addRequest.InsertionOrder.ProductsIDs)
 	if err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
 		return
@@ -172,9 +170,9 @@ func (oH *OrdersHttpHandler) handleRemoveProductsOfOrder(request *restful.Reques
 		return
 	}
 	id := helpers.SafeUUIDFromString(addRequest.ID)
-	uid := helpers.SafeUUIDFromString(addRequest.UserID)
+	uid := helpers.SafeUUIDFromString(addRequest.InsertionOrder.UserID)
 
-	order, err := oH.ordersUC.RemoveProductFromOrder(oH.ctx, uid, id, addRequest.ProductsIDs)
+	order, err := oH.ordersUC.RemoveProductFromOrder(oH.ctx, uid, id, addRequest.InsertionOrder.ProductsIDs)
 	if err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
 		return
