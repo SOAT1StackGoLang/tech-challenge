@@ -229,7 +229,7 @@ sleep 2
 # List all orders before payment
 echo -e "\n-----"
 echo -e "${YELLOW}Listing all Orders ${NC}"
-ORDERS=$(curl -X 'POST' \
+ORDERS=$(curl -s -X 'POST' \
   'http://localhost:8000/v1/orders/all' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
@@ -260,7 +260,7 @@ sleep 2
 # Get order after payment
 echo -e "\n-----"
 echo -e "${YELLOW}Getting Order after payment${NC}"
-ORDER=$(curl -X 'POST' 'http://localhost:8000/v1/orders/get' \
+ORDER=$(curl -s -X 'POST' 'http://localhost:8000/v1/orders/get' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "id": "'$ORDER_ID'",
@@ -272,7 +272,7 @@ sleep 2
 # List all orders after payment
 echo -e "\n-----"
 echo -e "${YELLOW}Listing all Orders after payment${NC}"
-ORDERS=$(curl -X 'POST' \
+ORDERS=$(curl -s -X 'POST' \
   'http://localhost:8000/v1/orders/all' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \

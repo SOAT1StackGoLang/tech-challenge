@@ -3,6 +3,8 @@ all:
     BUILD --platform=linux/amd64 --platform=linux/arm64 +docker
 amd64:
     BUILD --platform=linux/amd64 +docker
+arm64:
+    BUILD --platform=linux/arm64 +docker
 
 file:
     LOCALLY
@@ -42,8 +44,10 @@ docker:
     ARG TARGETPLATFORM
     ARG TARGETARCH
     ARG TARGETVARIANT
-    FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
-    #FROM --platform=$TARGETPLATFORM golang:alpine
+    #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
+    ## enable multiple debug version with shell
+    #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
+    FROM --platform=$TARGETPLATFORM alpine:latest
     LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
     WORKDIR /
     COPY \
@@ -53,6 +57,7 @@ docker:
         --platform=linux/amd64 \
         (+compile/migs --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /migs
     ENV GIN_MODE=release
-    CMD ["/migs", "/app"]
+    CMD /migs; /app
+    EXPOSE 8000
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_TARGET_TAG_DOCKER
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_GIT_SHORT_HASH
