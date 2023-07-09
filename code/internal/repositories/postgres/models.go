@@ -117,24 +117,12 @@ type Order struct {
 	DeletedAt sql.NullTime
 	Price     decimal.Decimal
 	Status    string
-	Products  []uuid.UUID `gorm:"type:jsonb"`
-}
-
-type SaveOrder struct {
-	ID        uuid.UUID `gorm:"id,primaryKey"`
-	UserID    uuid.UUID
-	PaymentID uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt sql.NullTime
-	DeletedAt sql.NullTime
-	Price     decimal.Decimal
-	Status    string
 	Products  json.RawMessage `json:"products" gorm:"type:jsonb"`
 }
 
-func (o *SaveOrder) fromDomain(order *domain.Order) {
+func (o *Order) fromDomain(order *domain.Order) {
 	if o == nil {
-		o = &SaveOrder{}
+		o = &Order{}
 	}
 	o.ID = order.ID
 	o.UserID = order.UserID
@@ -166,7 +154,7 @@ func (o *SaveOrder) fromDomain(order *domain.Order) {
 	}
 }
 
-func (o *SaveOrder) toDomain() *domain.Order {
+func (o *Order) toDomain() *domain.Order {
 	// Unmarshal the JSON-encoded byte slice to a slice of strings
 	var products []string
 	err := json.Unmarshal(o.Products, &products)
@@ -193,46 +181,6 @@ func (o *SaveOrder) toDomain() *domain.Order {
 		Status:      o.Status,
 		Price:       o.Price,
 		ProductsIDs: productIDs,
-	}
-}
-
-func (o *Order) fromDomain(order *domain.Order) {
-	if o == nil {
-		o = &Order{}
-	}
-	o.ID = order.ID
-	o.UserID = order.UserID
-	o.PaymentID = order.PaymentID
-	o.CreatedAt = order.CreatedAt
-	o.Status = order.Status
-	o.Price = order.Price
-	o.Products = order.ProductsIDs
-
-	if !order.UpdatedAt.IsZero() {
-		o.UpdatedAt = sql.NullTime{
-			Time:  order.UpdatedAt,
-			Valid: true,
-		}
-	}
-	if !order.DeletedAt.IsZero() {
-		o.DeletedAt = sql.NullTime{
-			Time:  order.DeletedAt,
-			Valid: true,
-		}
-	}
-}
-
-func (o *Order) toDomain() *domain.Order {
-	return &domain.Order{
-		ID:          o.ID,
-		UserID:      o.UserID,
-		PaymentID:   o.PaymentID,
-		CreatedAt:   o.CreatedAt,
-		UpdatedAt:   o.UpdatedAt.Time,
-		DeletedAt:   o.DeletedAt.Time,
-		Status:      o.Status,
-		Price:       o.Price,
-		ProductsIDs: o.Products,
 	}
 }
 
