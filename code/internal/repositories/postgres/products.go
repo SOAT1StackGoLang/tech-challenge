@@ -3,13 +3,14 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"time"
 )
 
 const productsTable = "lanchonete_products"
@@ -46,7 +47,7 @@ func (p *productsRepositoryImpl) GetProductsPriceSumByID(ctx context.Context, id
 
 	var calc decimal.Decimal
 	for _, v := range itemsAndPrices {
-		calc = prodsSum.Sum.Add(v.Price.Abs())
+		calc = calc.Add(v.Price.Abs())
 	}
 
 	prodsSum.Sum = calc.Abs()
