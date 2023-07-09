@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	restfulspec "github.com/emicklei/go-restful-openapi/v2"
@@ -19,12 +18,11 @@ type (
 
 	PaymentRequest struct {
 		OrderID string `json:"order_id" description:"ID do pedido a ser pago"`
-		Price   string `json:"price" description:"Valor sendo pago"`
 		UserID  string `json:"user_id" description:"Usuário efetuando o pagamento"`
 	}
 
 	Payment struct {
-		ID string `json:"id" description:"ID do pagamento"`
+		PaymentID string `json:"payment_id" description:"ID do pagamento"`
 		PaymentRequest
 	}
 )
@@ -34,7 +32,7 @@ func (p *Payment) fromDomain(payment *domain.Payment) {
 		p = &Payment{}
 	}
 
-	p.ID = payment.ID.String()
+	p.PaymentID = payment.ID.String()
 
 	var pR PaymentRequest
 	pR.fromDomain(payment)
@@ -48,7 +46,6 @@ func (pR *PaymentRequest) fromDomain(payment *domain.Payment) {
 
 	pR.OrderID = payment.OrderID.String()
 	pR.UserID = payment.UserID.String()
-	pR.Price = helpers.ParseDecimalToString(payment.Price)
 }
 
 func NewPaymentsHttpHandler(ctx context.Context, paymentsUseCase ports.PaymentUseCase, ws *restful.WebService) *PaymentsHttpHandler {

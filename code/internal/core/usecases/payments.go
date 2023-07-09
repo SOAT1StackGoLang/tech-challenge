@@ -15,8 +15,10 @@ type paymentsUseCase struct {
 	paymentRepo ports.PaymentRepository
 }
 
-func NewPaymentsUseCase(logger *zap.SugaredLogger, orderUC ports.OrdersUseCase) ports.PaymentUseCase {
-	return &paymentsUseCase{logger: logger, orderUC: orderUC}
+const OrderPaidStatus = "PAGA"
+
+func NewPaymentsUseCase(logger *zap.SugaredLogger, orderUC ports.OrdersUseCase, repo ports.PaymentRepository) ports.PaymentUseCase {
+	return &paymentsUseCase{logger: logger, orderUC: orderUC, paymentRepo: repo}
 }
 
 func (p *paymentsUseCase) PayOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Payment, error) {

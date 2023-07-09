@@ -18,8 +18,8 @@ func (p paymentsRepositoryImpl) PayOrder(ctx context.Context, payment *domain.Pa
 	return payment, nil
 }
 
-func NewPaymentsRepositoryImpl(log *zap.SugaredLogger, db *gorm.DB) ports.PaymentRepository {
-	return &paymentsRepositoryImpl{log: log, db: db}
+func NewPaymentsRepository(log *zap.SugaredLogger, db *gorm.DB, orderUC ports.OrdersUseCase) ports.PaymentRepository {
+	return &paymentsRepositoryImpl{log: log, db: db, orderUC: orderUC}
 }
 
 //const paymentsTable = "lanchonete_payments"

@@ -96,7 +96,6 @@ type Payment struct {
 	CreatedAt time.Time
 	OrderID   uuid.UUID
 	UserID    uuid.UUID
-	Price     decimal.Decimal
 }
 
 func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, userID uuid.UUID) *Payment {

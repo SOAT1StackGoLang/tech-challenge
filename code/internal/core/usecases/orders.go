@@ -114,9 +114,12 @@ func (o *ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UU
 
 func (o *ordersUseCase) SetOrderAsPaid(ctx context.Context, payment *domain.Payment) error {
 	// Check ownership
-	_, err := o.GetOrder(ctx, payment.UserID, payment.OrderID)
+	order, err := o.GetOrder(ctx, payment.UserID, payment.OrderID)
 	if err != nil {
 		return err
+	}
+	if order.Status == OrderPaidStatus {
+		return nil
 	}
 
 	return o.ordersRepo.SetOrderAsPaid(ctx, payment)
