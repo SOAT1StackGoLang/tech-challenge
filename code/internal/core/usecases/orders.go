@@ -35,7 +35,7 @@ func (o *ordersUseCase) GetOrder(ctx context.Context, userID, orderID uuid.UUID)
 	if err != nil {
 		return nil, err
 	}
-	if order.UserID != userID || isAdmin(o.logger, o.userUC, ctx, order.UserID) {
+	if order.UserID != userID && !isAdmin(o.logger, o.userUC, ctx, order.UserID) {
 		return nil, helpers.ErrUnauthorized
 	}
 

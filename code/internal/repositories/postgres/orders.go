@@ -110,7 +110,7 @@ func NewPgxOrdersRepository(log *zap.SugaredLogger, db *gorm.DB) ports.OrdersRep
 }
 
 func (o *ordersRepositoryImpl) GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error) {
-	var order *Order
+	order := &Order{}
 
 	var err error
 	if err = o.db.WithContext(ctx).Table(ordersTable).
