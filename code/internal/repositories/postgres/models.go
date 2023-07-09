@@ -143,7 +143,7 @@ func (o *SaveOrder) fromDomain(order *domain.Order) {
 	o.Status = order.Status
 	o.Price = order.Price
 
-	// Convert Products slice of uuid.UUID to a JSON array
+	// Convert ProductsIDs slice of uuid.UUID to a JSON array
 	productsJSON, err := json.Marshal(order.ProductsIDs)
 	if err != nil {
 		// Handle error

@@ -132,6 +132,7 @@ func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, order *domain.Or
 
 	in := SaveOrder{}
 	in.fromDomain(order)
+	in.Status = "ABERTO"
 
 	var err error
 	if err = o.db.WithContext(ctx).Table(ordersTable).Create(&in).Error; err != nil {
