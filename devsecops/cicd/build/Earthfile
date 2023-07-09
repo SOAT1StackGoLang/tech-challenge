@@ -47,6 +47,8 @@ docker:
     #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
     FROM --platform=$TARGETPLATFORM golang:alpine
     LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
+    RUN adduser -D appuser
+    USER appuser
     WORKDIR /
     COPY \
         --platform=linux/amd64 \
