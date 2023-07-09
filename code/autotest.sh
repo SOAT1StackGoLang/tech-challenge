@@ -218,4 +218,23 @@ echo -e "$ORDER" | jq
 ORDER_ID=$(echo $ORDER | jq -r '.id')
 sleep 2
 
+# List all orders
+echo -e "\n-----"
+echo -e "${YELLOW}Listing all Orders ${NC}"
+ORDERS=$(curl -X 'POST' \
+  'http://localhost:8000/v1/orders/all' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "limit": 10,
+  "offset": 0,
+  "user_id": "123e4567-e89b-12d3-a456-426614174000"
+}')
+if command -v jq &> /dev/null; then
+    echo $ORDERS | jq
+else
+    echo $ORDERS
+fi
+
+
 

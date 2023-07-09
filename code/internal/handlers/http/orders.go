@@ -2,14 +2,15 @@ package http
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	restfulspec "github.com/emicklei/go-restful-openapi/v2"
 	"github.com/emicklei/go-restful/v3"
 	"github.com/google/uuid"
-	"net/http"
-	"time"
 )
 
 type (
@@ -32,6 +33,11 @@ type (
 	InsertionOrder struct {
 		UserID      string      `json:"user_id" description:"ID do dono do pedido"`
 		ProductsIDs []uuid.UUID `json:"products_ids" description:"ID dos produtos"`
+	}
+
+	InsertionOrderSwagger struct {
+		UserID      string   `json:"user_id" description:"ID do dono do pedido"`
+		ProductsIDs []string `json:"products_ids" description:"Lista de ID dos produtos separados por vírgula"`
 	}
 
 	UpdateOrder struct {
@@ -257,7 +263,7 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 	ws.Route(ws.POST("/orders").To(handler.handleCreateOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Cadastra pedido").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(InsertionOrder{}).
+		Reads(InsertionOrderSwagger{}).
 		Returns(http.StatusOK, "sucesso", Order{}).
 		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
 	ws.Route(ws.PUT("/orders/remove").To(handler.handleAddProductsIntoOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
