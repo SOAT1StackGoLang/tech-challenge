@@ -3,3 +3,6 @@ version: '3.8'
 services:
   app:
     image: local-app-image-retag:latest
+    build:
+      context: ""
+      dockerfile: ""
