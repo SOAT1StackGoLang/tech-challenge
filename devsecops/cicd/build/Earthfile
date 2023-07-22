@@ -1,6 +1,6 @@
 VERSION 0.7
 all:
-    BUILD --platform=linux/amd64 --platform=linux/arm64 +docker
+    BUILD --platform=linux/amd64 --platform=linux/arm64 +docker-migrations +docker-main-app
 amd64:
     BUILD --platform=linux/amd64 +docker
 arm64:
@@ -38,26 +38,44 @@ compile:
     SAVE ARTIFACT compile/migs /migs AS LOCAL compile/migs
 #--ldflags "-X 'main.Version=v0.0.3' -X 'main.BuildTime=$(date "+%H:%M:%S--%d/%m/%Y")' -X 'main.GitCommit=$(git rev-parse --short HEAD)'" \
 
-docker:
+docker-migrations:
     ARG EARTHLY_TARGET_TAG_DOCKER
     ARG EARTHLY_GIT_SHORT_HASH
     ARG TARGETPLATFORM
     ARG TARGETARCH
     ARG TARGETVARIANT
-    #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
+    FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
     ## enable multiple debug version with shell
     #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
-    FROM --platform=$TARGETPLATFORM alpine:latest
+    #FROM --platform=$TARGETPLATFORM alpine:latest
+    LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
+    WORKDIR /
+    COPY \
+        --platform=linux/amd64 \
+        (+compile/migs --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /migs
+    ENV GIN_MODE=release
+    CMD /migs
+    EXPOSE 8000
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:migs-$EARTHLY_TARGET_TAG_DOCKER
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:migs-$EARTHLY_GIT_SHORT_HASH
+
+docker-main-app:
+    ARG EARTHLY_TARGET_TAG_DOCKER
+    ARG EARTHLY_GIT_SHORT_HASH
+    ARG TARGETPLATFORM
+    ARG TARGETARCH
+    ARG TARGETVARIANT
+    FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
+    ## enable multiple debug version with shell
+    #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
+    #FROM --platform=$TARGETPLATFORM alpine:latest
     LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
     WORKDIR /
     COPY \
         --platform=linux/amd64 \
         (+compile/app --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /app
-    COPY \
-        --platform=linux/amd64 \
-        (+compile/migs --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /migs
     ENV GIN_MODE=release
-    CMD /migs; /app
+    CMD /app
     EXPOSE 8000
-    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_TARGET_TAG_DOCKER
-    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_GIT_SHORT_HASH
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:main-$EARTHLY_TARGET_TAG_DOCKER
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:main-$EARTHLY_GIT_SHORT_HASH
