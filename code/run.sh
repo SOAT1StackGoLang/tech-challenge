@@ -98,8 +98,7 @@ case "$1" in
     ;;
   recreate-all-with-tests-no-build)
     # Destroy all containers and their volumes
-    commit_sha=$(git rev-parse --short HEAD)
-    tag_docker_image "local_app:debug-$commit_sha" "local-app-image-retag:latest" 
+    tag_docker_image "local_app:latest" "local-app-image-retag:latest" 
     #tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:debug-develop" "local-app-image-retag:latest" 
 
     $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml down -v
@@ -113,11 +112,11 @@ case "$1" in
     sleep 10
     ./autotest.sh
     ;;
-  recreate-all-with-tests-no-build-branch)
+  recreate-all-with-tests-no-build-cicd)
     # Destroy all containers and their volumes
-    commit_sha=$(git rev-parse --short HEAD)
-    tag_docker_image "local_app:$commit_sha" "local-app-image-retag:latest"
-    #tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:develop" "local-app-image-retag:latest" 
+    commit_sha=$(git rev-parse --short=8 HEAD)
+    #tag_docker_image "local_app:debug-$commit_sha" "local-app-image-retag:latest"
+    tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:debug-$commit_sha" "local-app-image-retag:latest" 
 
     $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml down -v
     # Start all containers
