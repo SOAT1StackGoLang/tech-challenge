@@ -1,11 +1,13 @@
 VERSION 0.7
 all:
-    BUILD --platform=linux/amd64 --platform=linux/arm64 +docker-migrations +docker-main-app
+    BUILD --platform=linux/amd64 --platform=linux/arm64 +migrations
+    BUILD --platform=linux/amd64 --platform=linux/arm64 +main
 amd64:
-    BUILD --platform=linux/amd64 +docker
+    BUILD --platform=linux/amd64 +migrations
+    BUILD --platform=linux/amd64 +main
 arm64:
-    BUILD --platform=linux/arm64 +docker
-
+    BUILD --platform=linux/arm64 +migrations
+    BUILD --platform=linux/arm64 +main
 file:
     LOCALLY
     SAVE ARTIFACT ../../../code
@@ -38,7 +40,7 @@ compile:
     SAVE ARTIFACT compile/migs /migs AS LOCAL compile/migs
 #--ldflags "-X 'main.Version=v0.0.3' -X 'main.BuildTime=$(date "+%H:%M:%S--%d/%m/%Y")' -X 'main.GitCommit=$(git rev-parse --short HEAD)'" \
 
-docker-migrations:
+migrations:
     ARG EARTHLY_TARGET_TAG_DOCKER
     ARG EARTHLY_GIT_SHORT_HASH
     ARG TARGETPLATFORM
@@ -59,7 +61,7 @@ docker-migrations:
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:migs-$EARTHLY_TARGET_TAG_DOCKER
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:migs-$EARTHLY_GIT_SHORT_HASH
 
-docker-main-app:
+main:
     ARG EARTHLY_TARGET_TAG_DOCKER
     ARG EARTHLY_GIT_SHORT_HASH
     ARG TARGETPLATFORM
@@ -79,3 +81,4 @@ docker-main-app:
     EXPOSE 8000
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:main-$EARTHLY_TARGET_TAG_DOCKER
     SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:main-$EARTHLY_GIT_SHORT_HASH
+
