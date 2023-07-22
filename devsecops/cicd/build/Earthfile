@@ -54,6 +54,7 @@ migrations:
     #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
     #FROM --platform=$TARGETPLATFORM alpine:latest
     LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
+    LABEL org.opencontainers.image.description="Migrations Image only have the migrations binary and nothing else"
     WORKDIR /
     COPY \
         --platform=linux/amd64 \
@@ -75,6 +76,7 @@ main:
     #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
     #FROM --platform=$TARGETPLATFORM alpine:latest
     LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
+    LABEL org.opencontainers.image.description="Main App Image only have the app binary and nothing else"
     WORKDIR /
     COPY \
         --platform=linux/amd64 \
@@ -96,6 +98,7 @@ debug:
     #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
     FROM --platform=$TARGETPLATFORM alpine:latest
     LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
+    LABEL org.opencontainers.image.description="Debug Image will have all binaries"
     WORKDIR /
     COPY \
         --platform=linux/amd64 \

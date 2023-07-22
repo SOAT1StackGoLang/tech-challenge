@@ -36,6 +36,7 @@ function tag_docker_image() {
 
   $tag_cmd pull $origin
   $tag_cmd tag $origin $destination
+  $tag_cmd images
 }
 
 # Parse command line arguments
