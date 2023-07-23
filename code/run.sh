@@ -106,14 +106,14 @@ case "$1" in
     tag_docker_image "local_app:latest" "local-app-image-retag:latest" 
     #tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:debug-develop" "local-app-image-retag:latest" 
 
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f down -v
+    $compose_cmd -f ../devsecops/local/docker-compose.yml down -v
     # Start all containers
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f up --no-build -d db
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up --no-build -d db
     sleep 5
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f up --no-build -d app
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f logs db &
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up --no-build -d app
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs db &
     sleep 2
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f logs app &
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
     sleep 10
     ./autotest.sh
     ;;
