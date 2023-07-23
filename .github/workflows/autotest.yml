@@ -19,4 +19,4 @@ jobs:
       # - name: Run the tests
       #   run: cd code && ./autotest.sh
       - name: Pull and the tests
-        run: cd code && ./run.sh recreate-all-with-tests-no-build-cicd
+        run: cd code && ./run.sh recreate-all-with-build-tests-cicd
