@@ -13,6 +13,26 @@ then
     exit
 fi
 
+# Check if api is working
+# Get admin user with retry
+echo -e "${YELLOW}Check if api is working${NC}"
+for i in {1..5}; do
+  if curl -s -X 'POST' --location 'localhost:8000/v1/users/validate' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+      "document": "97580053080"
+  }' > /dev/null; then
+    break
+  else
+    echo "Retry $i"
+    sleep 2
+    if [ $i -eq 5 ]; then
+      echo -e "${RED}Failed to connect to API after 5 retries.${NC}"
+      exit 1
+    fi
+  fi
+done
+
 # Get admin user
 echo -e "${YELLOW}Getting admin user${NC}"
 curl -s -X 'POST' --location 'localhost:8000/v1/users/validate' \

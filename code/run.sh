@@ -34,8 +34,13 @@ function tag_docker_image() {
     exit 1
   fi
 
+  echo "Current images"
+  $tag_cmd images
+  echo "Tagging $origin as $destination"
   $tag_cmd pull $origin
   $tag_cmd tag $origin $destination
+  echo "New images"
+  $tag_cmd images
 }
 
 # Parse command line arguments
@@ -98,35 +103,33 @@ case "$1" in
     ;;
   recreate-all-with-tests-no-build)
     # Destroy all containers and their volumes
-    commit_sha=$(git rev-parse --short HEAD)
-    tag_docker_image "local_app:$commit_sha" "local-app-image-retag:latest" 
-    #tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:develop" "local-app-image-retag:latest" 
+    tag_docker_image "local_app:latest" "local-app-image-retag:latest" 
+    #tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:debug-develop" "local-app-image-retag:latest" 
 
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml down -v
+    $compose_cmd -f ../devsecops/local/docker-compose.yml down -v
     # Start all containers
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up -d db
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up --no-build -d db
     sleep 5
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up -d app
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml logs db &
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up --no-build -d app
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs db &
     sleep 2
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml logs app &
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
     sleep 10
     ./autotest.sh
     ;;
-  recreate-all-with-tests-no-build-branch)
-    # Destroy all containers and their volumes
-    commit_sha=$(git rev-parse --short HEAD)
-    tag_docker_image "local_app:$commit_sha" "local-app-image-retag:latest"
-    #tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:develop" "local-app-image-retag:latest" 
+  recreate-all-with-build-tests-cicd)
+    # Build and test image on cicd, uses the local build process, some behaivour may be different 
+    # will be builded everytime because of the wierd compose behaviour
 
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml down -v
+
+    $compose_cmd -f ../devsecops/local/docker-compose.yml down -v
     # Start all containers
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up db -d
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d db
     sleep 5
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml up app -d
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml logs db &
+    $compose_cmd -f ../devsecops/local/docker-compose.yml up -d app
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs db &
     sleep 2
-    $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml logs app &
+    $compose_cmd -f ../devsecops/local/docker-compose.yml logs app &
     sleep 10
     ./autotest.sh
     ;;
