@@ -34,8 +34,12 @@ function tag_docker_image() {
     exit 1
   fi
 
+  echo "Current images"
+  $tag_cmd images
+  echo "Tagging $origin as $destination"
   $tag_cmd pull $origin
   $tag_cmd tag $origin $destination
+  echo "New images"
   $tag_cmd images
 }
 
@@ -117,7 +121,8 @@ case "$1" in
     # Destroy all containers and their volumes
     commit_sha=$(git rev-parse --short=8 HEAD)
     #tag_docker_image "local_app:debug-$commit_sha" "local-app-image-retag:latest"
-    tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:debug-$commit_sha" "local-app-image-retag:latest" 
+    tag_docker_image "ghcr.io/soat1stackgolang/tech-challenge:debug-$commit_sha" "local-app-image-retag:latest"
+    tag_docker_image "local-app-image-retag:latest" "local_app:latest"
 
     $compose_cmd -f ../devsecops/local/docker-compose.yml -f ../devsecops/cicd/deploy/docker-compose.pull.yaml down -v
     # Start all containers
