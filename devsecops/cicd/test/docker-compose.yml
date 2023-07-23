@@ -15,7 +15,7 @@ services:
       - ./initdb/:/docker-entrypoint-initdb.d/
 
   app:
-    image: local-app-image-retag:latest
+    image: localhost/local-app-image-retag:latest
     restart: always
     ports:
       - "8000:8000"
