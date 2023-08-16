@@ -26,3 +26,5 @@ code/main
 
 .vscode/launch.json
 code/cmd/web/__debug_bin
+
+.idea
