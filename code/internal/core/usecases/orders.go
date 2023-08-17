@@ -2,7 +2,7 @@ package usecases
 
 import (
 	"context"
-
+	"github.com/shopspring/decimal"
 	"time"
 
 	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
@@ -19,15 +19,15 @@ type ordersUseCase struct {
 	prodUC     ports.ProductsUseCase
 }
 
-func (o *ordersUseCase) ListOrders(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error) {
-	if !isAdmin(o.logger, o.userUC, ctx, userID) {
-		return o.ordersRepo.ListOrdersByUser(ctx, limit, offset, userID)
-	}
-	return o.ordersRepo.ListOrders(ctx, limit, offset)
-}
-
 func NewOrdersUseCase(logger *zap.SugaredLogger, ordersRepo ports.OrdersRepository, userUC ports.UsersUseCase, prodUC ports.ProductsUseCase) ports.OrdersUseCase {
 	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC}
+}
+
+func (o *ordersUseCase) ListOrders(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error) {
+	if isAdmin(o.logger, o.userUC, ctx, userID) {
+		return o.ordersRepo.ListOrders(ctx, limit, offset)
+	}
+	return o.ordersRepo.ListOrdersByUser(ctx, limit, offset, userID)
 }
 
 func (o *ordersUseCase) GetOrder(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error) {
@@ -35,6 +35,7 @@ func (o *ordersUseCase) GetOrder(ctx context.Context, userID, orderID uuid.UUID)
 	if err != nil {
 		return nil, err
 	}
+
 	if order.UserID != userID && !isAdmin(o.logger, o.userUC, ctx, order.UserID) {
 		return nil, helpers.ErrUnauthorized
 	}
@@ -42,64 +43,83 @@ func (o *ordersUseCase) GetOrder(ctx context.Context, userID, orderID uuid.UUID)
 	return order, nil
 }
 
-func (o *ordersUseCase) CreateOrder(ctx context.Context, userID uuid.UUID, products []uuid.UUID) (*domain.Order, error) {
-	prodSum, err := o.prodUC.GetProductsPriceSumByID(ctx, products)
-	if err != nil {
-		return nil, err
+func (o *ordersUseCase) CreateOrder(ctx context.Context, userID uuid.UUID, products []domain.Product) (*domain.Order, error) {
+	var order *domain.Order
+
+	if len(products) == 0 {
+		o.logger.Errorw(
+			"error at CreateOrder, must have at least one product in it",
+			zap.Any("products", products),
+			zap.Error(helpers.ErrInvalidInput),
+		)
+		return nil, helpers.ErrInvalidInput
 	}
 
-	var order *domain.Order
 	order = domain.NewOrder(uuid.New(), userID, time.Now(), products)
-	order.Price = prodSum.Sum
+
+	for _, v := range products {
+		order.Price.Add(v.Price)
+	}
 
 	return o.ordersRepo.CreateOrder(ctx, order)
 }
 
-func (o *ordersUseCase) InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (*domain.Order, error) {
+func (o *ordersUseCase) InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, inProducts []domain.Product) (*domain.Order, error) {
 	order, err := o.GetOrder(ctx, userID, orderID)
 	// Check ownership
 	if err != nil {
 		return nil, err
 	}
 
-	// append products
-	prodIDs := make([]uuid.UUID, 0, len(order.ProductsIDs)+len(products))
-	for _, v := range order.ProductsIDs {
-		prodIDs = append(prodIDs, v)
-	}
-	for _, v := range products {
-		prodIDs = append(prodIDs, v)
-	}
-
-	err = o.getTotalAndUpdate(ctx, prodIDs, order)
-	if err != nil {
-		return nil, err
+	if len(inProducts) == 0 {
+		o.logger.Errorw(
+			"error at InsertProductsIntoOrder, must have at least one product in it",
+			zap.Any("inProducts", inProducts),
+			zap.Error(helpers.ErrInvalidInput),
+		)
+		return nil, helpers.ErrInvalidInput
 	}
 
-	return order, err
+	for _, v := range inProducts {
+		order.Products = append(order.Products, v)
+		order.Price.Add(v.Price)
+	}
+
+	return o.ordersRepo.UpdateOrder(ctx, order)
 }
 
-func (o *ordersUseCase) RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (*domain.Order, error) {
+func (o *ordersUseCase) RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, outProducts []domain.Product) (*domain.Order, error) {
 	order, err := o.GetOrder(ctx, userID, orderID)
 	if err != nil {
 		return nil, err
 	}
 
-	// append products
-	prodIDs := make([]uuid.UUID, 0, len(order.ProductsIDs))
-	for _, v := range order.ProductsIDs {
-		prodIDs = append(prodIDs, v)
-	}
-	for _, v := range products {
-		removeProduct(prodIDs, v)
-	}
-
-	err = o.getTotalAndUpdate(ctx, prodIDs, order)
-	if err != nil {
-		return nil, err
+	if len(outProducts) == 0 {
+		o.logger.Errorw(
+			"error at RemoveProductFromOrder, must have at least one product in it",
+			zap.Any("outProducts", outProducts),
+			zap.Error(helpers.ErrInvalidInput),
+		)
+		return nil, helpers.ErrInvalidInput
 	}
 
-	return order, err
+	var removeSet map[uuid.UUID]bool
+	for _, p := range outProducts {
+		removeSet[p.ID] = true
+	}
+
+	var newProdsList []domain.Product
+	order.Price = decimal.NewFromInt(0)
+	for _, p := range order.Products {
+		if _, ok := removeSet[p.ID]; !ok {
+			newProdsList = append(newProdsList, p)
+			order.Price.Add(p.Price)
+		}
+	}
+
+	order.Products = newProdsList
+
+	return o.ordersRepo.UpdateOrder(ctx, order)
 }
 
 func (o *ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error {
@@ -123,38 +143,4 @@ func (o *ordersUseCase) SetOrderAsPaid(ctx context.Context, payment *domain.Paym
 	}
 
 	return o.ordersRepo.SetOrderAsPaid(ctx, payment)
-}
-
-func removeProduct(current []uuid.UUID, prodID uuid.UUID) []uuid.UUID {
-	if len(current) == 0 {
-		return make([]uuid.UUID, 0)
-	}
-
-	for k, v := range current {
-		if v == prodID {
-			return append(current[:k], current[k+1:]...)
-		}
-	}
-
-	return current
-}
-
-func (o *ordersUseCase) getTotalAndUpdate(ctx context.Context, prodIDs []uuid.UUID, order *domain.Order) error {
-	// get value
-	sum, err := o.prodUC.GetProductsPriceSumByID(ctx, prodIDs)
-	if err != nil {
-		return err
-	}
-
-	order.ProductsIDs = prodIDs
-	order.Price = sum.Sum
-
-	//update order
-	updated, err := o.ordersRepo.UpdateOrder(ctx, order)
-	if err != nil {
-		return err
-	}
-
-	order = updated
-	return nil
 }

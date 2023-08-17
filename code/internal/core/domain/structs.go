@@ -29,12 +29,30 @@ type Product struct {
 	Price       decimal.Decimal
 }
 
-func ParseProductToDomain(ID uuid.UUID, categoryID uuid.UUID, createdAt time.Time, updatedAt time.Time, deletedAt time.Time, name string, description string, price string) *Product {
+func ParseProductToDomain(
+	ID uuid.UUID,
+	categoryID uuid.UUID,
+	createdAt time.Time,
+	updatedAt time.Time,
+	deletedAt time.Time,
+	name string,
+	description string,
+	price string,
+) *Product {
 	p, err := helpers.ParseDecimalFromString(price)
 	if err != nil {
 		return nil
 	}
-	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: createdAt, UpdatedAt: updatedAt, DeletedAt: deletedAt, Name: name, Description: description, Price: p}
+	return &Product{
+		ID:          ID,
+		CategoryID:  categoryID,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
+		DeletedAt:   deletedAt,
+		Name:        name,
+		Description: description,
+		Price:       p,
+	}
 }
 
 func NewProduct(ID uuid.UUID, categoryID uuid.UUID, name string, description string, price string) *Product {
@@ -61,23 +79,30 @@ type ProductsSum struct {
 }
 
 type Order struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	PaymentID   uuid.UUID
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   time.Time
-	Price       decimal.Decimal
-	Status      string
-	ProductsIDs []uuid.UUID
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	PaymentID uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
+	Price     decimal.Decimal
+	Status    string
+	Products  []Product
 }
 
-func ParseToDomainOrder(ID uuid.UUID, userID uuid.UUID, paymentID uuid.UUID, price decimal.Decimal, status string, productsIDs []uuid.UUID) *Order {
-	return &Order{ID: ID, UserID: userID, PaymentID: paymentID, Price: price, Status: status, ProductsIDs: productsIDs}
+func ParseToDomainOrder(
+	ID uuid.UUID,
+	userID uuid.UUID,
+	paymentID uuid.UUID,
+	price decimal.Decimal,
+	status string,
+	products []Product,
+) *Order {
+	return &Order{ID: ID, UserID: userID, PaymentID: paymentID, Price: price, Status: status, Products: products}
 }
 
-func NewOrder(ID uuid.UUID, userID uuid.UUID, createdAt time.Time, products []uuid.UUID) *Order {
-	return &Order{ID: ID, UserID: userID, CreatedAt: createdAt, ProductsIDs: products}
+func NewOrder(ID uuid.UUID, userID uuid.UUID, createdAt time.Time, products []Product) *Order {
+	return &Order{ID: ID, UserID: userID, CreatedAt: createdAt, Products: products}
 }
 
 type Category struct {

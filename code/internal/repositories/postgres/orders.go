@@ -136,10 +136,10 @@ func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, order *domain.Or
 	in.fromDomain(order)
 	in.Status = "ABERTO"
 
-	var err error
-	if err = o.db.WithContext(ctx).Table(ordersTable).Create(&in).Error; err != nil {
+	if err := o.db.WithContext(ctx).Table(ordersTable).Create(&in).Error; err != nil {
 		o.log.Errorw(
-			"db failed creating order",
+			"db failed at CreateOrder",
+			zap.Any("order_input", order),
 			zap.Error(err),
 		)
 		return nil, err
@@ -147,7 +147,7 @@ func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, order *domain.Or
 
 	out = in.toDomain()
 
-	return out, err
+	return out, nil
 }
 
 func (o *ordersRepositoryImpl) UpdateOrder(ctx context.Context, in *domain.Order) (*domain.Order, error) {
@@ -156,8 +156,7 @@ func (o *ordersRepositoryImpl) UpdateOrder(ctx context.Context, in *domain.Order
 
 	order.UpdatedAt.Time = time.Now()
 
-	var err error
-	if err = o.db.WithContext(ctx).Table(ordersTable).
+	if err := o.db.WithContext(ctx).Table(ordersTable).
 		Updates(&order).
 		Where("id = ?", in.ID).
 		Error; err != nil {
@@ -170,16 +169,15 @@ func (o *ordersRepositoryImpl) UpdateOrder(ctx context.Context, in *domain.Order
 		return nil, err
 	}
 
-	return order.toDomain(), err
+	return order.toDomain(), nil
 }
 
 func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, orderID uuid.UUID) error {
-	var err error
 	deletedAt := sql.NullTime{
 		Time:  time.Now(),
 		Valid: true,
 	}
-	if err = o.db.WithContext(ctx).Table(ordersTable).
+	if err := o.db.WithContext(ctx).Table(ordersTable).
 		UpdateColumn("deleted_at", deletedAt).
 		Where("order_id", orderID).
 		Error; err != nil {
@@ -189,7 +187,7 @@ func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, orderID uuid.UUI
 			zap.Error(err),
 		)
 	}
-	return err
+	return nil
 }
 
 func (o *ordersRepositoryImpl) SetOrderAsPaid(ctx context.Context, payment *domain.Payment) (err error) {

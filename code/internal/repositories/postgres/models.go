@@ -122,7 +122,7 @@ type Order struct {
 
 func (o *Order) fromDomain(order *domain.Order) {
 	if o == nil {
-		o = &Order{}
+		panic("order is nil")
 	}
 	o.ID = order.ID
 	o.UserID = order.UserID
@@ -131,14 +131,13 @@ func (o *Order) fromDomain(order *domain.Order) {
 	o.Status = order.Status
 	o.Price = order.Price
 
-	// Convert ProductsIDs slice of uuid.UUID to a JSON array
-	productsJSON, err := json.Marshal(order.ProductsIDs)
+	productsJSON, err := json.Marshal(order.Products)
 	if err != nil {
-		// Handle error
+		//TODO handle properly
+		panic("failed to marshal products")
 	}
 
-	// Create a new json.RawMessage object from the JSON-encoded byte slice
-	o.Products = json.RawMessage(productsJSON)
+	o.Products = productsJSON
 
 	if !order.UpdatedAt.IsZero() {
 		o.UpdatedAt = sql.NullTime{
@@ -155,7 +154,32 @@ func (o *Order) fromDomain(order *domain.Order) {
 }
 
 func (o *Order) toDomain() *domain.Order {
-	// Unmarshal the JSON-encoded byte slice to a slice of strings
+	var products []Product
+	err := json.Unmarshal(o.Products, &products)
+	if err != nil {
+		// TODO handle properly
+		panic("failed to unmarshal products")
+	}
+
+	var outProducts []domain.Product
+	for _, v := range products {
+		outProducts = append(outProducts, *v.toDomain())
+	}
+
+	return &domain.Order{
+		ID:        o.ID,
+		UserID:    o.UserID,
+		PaymentID: o.PaymentID,
+		CreatedAt: o.CreatedAt,
+		UpdatedAt: o.UpdatedAt.Time,
+		DeletedAt: o.DeletedAt.Time,
+		Status:    o.Status,
+		Price:     o.Price,
+		Products:  outProducts,
+	}
+}
+
+func (o *Order) extractProductsIDsFromJSON() []uuid.UUID {
 	var products []string
 	err := json.Unmarshal(o.Products, &products)
 	if err != nil {
@@ -171,17 +195,7 @@ func (o *Order) toDomain() *domain.Order {
 		}
 	}
 
-	return &domain.Order{
-		ID:          o.ID,
-		UserID:      o.UserID,
-		PaymentID:   o.PaymentID,
-		CreatedAt:   o.CreatedAt,
-		UpdatedAt:   o.UpdatedAt.Time,
-		DeletedAt:   o.DeletedAt.Time,
-		Status:      o.Status,
-		Price:       o.Price,
-		ProductsIDs: productIDs,
-	}
+	return productIDs
 }
 
 type Payment struct {
