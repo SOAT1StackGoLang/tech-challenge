@@ -136,7 +136,7 @@ func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, order *domain.Or
 	in.fromDomain(order)
 	in.Status = "ABERTO"
 
-	if err := o.db.WithContext(ctx).Table(ordersTable).Create(&in).Error; err != nil {
+	if err := o.db.WithContext(ctx).Table(ordersTable).Omit("updated_at").Create(&in).Error; err != nil {
 		o.log.Errorw(
 			"db failed at CreateOrder",
 			zap.Any("order_input", order),

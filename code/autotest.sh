@@ -136,7 +136,7 @@ PRODUCT=$(curl -s --location 'localhost:8000/v1/products' \
     "name": "Coca Cola",
     "description": "Coca Cola 350ml",
     "price": "5.00",
-    "category_id": "'$CATEGORY_ID'",
+    "category_id": "a557b0c0-3bcf-11ee-be56-0242ac120002",
     "user_id": "123e4567-e89b-12d3-a456-426614174000"
 }')
 echo -e "$PRODUCT" | jq
@@ -153,7 +153,7 @@ curl -s --location --request PUT 'localhost:8000/v1/products' \
     "name": "Coca Cola 350ml",
     "description": "Coca Cola 350ml Lata",
     "price": "5.00",
-    "category_id": "'$CATEGORY_ID'",
+    "category_id": "a557b0c0-3bcf-11ee-be56-0242ac120002",
     "user_id": "123e4567-e89b-12d3-a456-426614174000"
 }' | jq .
 sleep 2

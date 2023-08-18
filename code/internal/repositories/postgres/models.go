@@ -46,6 +46,32 @@ type Product struct {
 	Price       decimal.Decimal `json:"price"`
 }
 
+type OrderProduct struct {
+	ID          uuid.UUID       `gorm:"id,primaryKey" json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	CategoryID  uuid.UUID       `json:"category_id"`
+	Price       decimal.Decimal `json:"price"`
+}
+
+func (oP *OrderProduct) toDomain() *domain.Product {
+	return &domain.Product{
+		ID:          oP.ID,
+		Name:        oP.Name,
+		Description: oP.Description,
+		CategoryID:  oP.CategoryID,
+		Price:       oP.Price,
+	}
+}
+
+func (oP *OrderProduct) fromDomain(dP *domain.Product) {
+	oP.ID = dP.ID
+	oP.Name = dP.Name
+	oP.Description = dP.Description
+	oP.CategoryID = dP.CategoryID
+	oP.Price = dP.Price
+}
+
 func (p *Product) toDomain() *domain.Product {
 	return &domain.Product{
 		ID:          p.ID,
@@ -131,7 +157,14 @@ func (o *Order) fromDomain(order *domain.Order) {
 	o.Status = order.Status
 	o.Price = order.Price
 
-	productsJSON, err := json.Marshal(order.Products)
+	var products []OrderProduct
+	for _, p := range order.Products {
+		oP := OrderProduct{}
+		oP.fromDomain(&p)
+		products = append(products, oP)
+	}
+
+	productsJSON, err := json.Marshal(products)
 	if err != nil {
 		//TODO handle properly
 		panic("failed to marshal products")

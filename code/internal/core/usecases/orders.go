@@ -55,10 +55,23 @@ func (o *ordersUseCase) CreateOrder(ctx context.Context, userID uuid.UUID, produ
 		return nil, helpers.ErrInvalidInput
 	}
 
+	for k, p := range products {
+		fullProduct, err := o.prodUC.GetProduct(ctx, p.ID)
+		if err != nil {
+			o.logger.Errorw("CreateOrder failed due to invalid product",
+				zap.String("product_id", p.ID.String()),
+				zap.Any("requested_products", products),
+				zap.Error(err),
+			)
+			return nil, err
+		}
+		products[k] = *fullProduct
+	}
+
 	order = domain.NewOrder(uuid.New(), userID, time.Now(), products)
 
 	for _, v := range products {
-		order.Price.Add(v.Price)
+		order.Price = order.Price.Add(v.Price)
 	}
 
 	return o.ordersRepo.CreateOrder(ctx, order)
@@ -82,7 +95,7 @@ func (o *ordersUseCase) InsertProductsIntoOrder(ctx context.Context, userID, ord
 
 	for _, v := range inProducts {
 		order.Products = append(order.Products, v)
-		order.Price.Add(v.Price)
+		order.Price = order.Price.Add(v.Price)
 	}
 
 	return o.ordersRepo.UpdateOrder(ctx, order)
@@ -113,7 +126,7 @@ func (o *ordersUseCase) RemoveProductFromOrder(ctx context.Context, userID, orde
 	for _, p := range order.Products {
 		if _, ok := removeSet[p.ID]; !ok {
 			newProdsList = append(newProdsList, p)
-			order.Price.Add(p.Price)
+			order.Price = order.Price.Add(p.Price)
 		}
 	}
 
