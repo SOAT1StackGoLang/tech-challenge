@@ -134,7 +134,7 @@ func (o *ordersRepositoryImpl) CreateOrder(ctx context.Context, order *domain.Or
 
 	in := Order{}
 	in.fromDomain(order)
-	in.Status = "ABERTO"
+	in.Status = ORDER_STATUS_OPEN
 
 	if err := o.db.WithContext(ctx).Table(ordersTable).Omit("updated_at").Create(&in).Error; err != nil {
 		o.log.Errorw(
@@ -156,17 +156,33 @@ func (o *ordersRepositoryImpl) UpdateOrder(ctx context.Context, in *domain.Order
 
 	order.UpdatedAt.Time = time.Now()
 
-	if err := o.db.WithContext(ctx).Table(ordersTable).
-		Updates(&order).
-		Where("id = ?", in.ID).
-		Error; err != nil {
-		o.log.Errorw(
-			"db failed updating order",
-			zap.Any("in_order", in),
-			zap.Any("repo_order", order),
-			zap.Error(err),
-		)
-		return nil, err
+	if in.Status == "" {
+		if err := o.db.WithContext(ctx).Table(ordersTable).
+			Updates(&order).
+			Omit("status").
+			Where("id = ?", in.ID).
+			Error; err != nil {
+			o.log.Errorw(
+				"db failed updating order",
+				zap.Any("in_order", in),
+				zap.Any("repo_order", order),
+				zap.Error(err),
+			)
+			return nil, err
+		}
+	} else {
+		if err := o.db.WithContext(ctx).Table(ordersTable).
+			Updates(&order).
+			Where("id = ?", in.ID).
+			Error; err != nil {
+			o.log.Errorw(
+				"db failed updating order",
+				zap.Any("in_order", in),
+				zap.Any("repo_order", order),
+				zap.Error(err),
+			)
+			return nil, err
+		}
 	}
 
 	return order.toDomain(), nil

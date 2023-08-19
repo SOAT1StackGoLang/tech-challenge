@@ -142,7 +142,7 @@ type Order struct {
 	UpdatedAt sql.NullTime
 	DeletedAt sql.NullTime
 	Price     decimal.Decimal
-	Status    string
+	Status    OrderStatus
 	Products  json.RawMessage `json:"products" gorm:"type:jsonb"`
 }
 
@@ -154,7 +154,6 @@ func (o *Order) fromDomain(order *domain.Order) {
 	o.UserID = order.UserID
 	o.PaymentID = order.PaymentID
 	o.CreatedAt = order.CreatedAt
-	o.Status = order.Status
 	o.Price = order.Price
 
 	var products []OrderProduct
@@ -206,7 +205,7 @@ func (o *Order) toDomain() *domain.Order {
 		CreatedAt: o.CreatedAt,
 		UpdatedAt: o.UpdatedAt.Time,
 		DeletedAt: o.DeletedAt.Time,
-		Status:    o.Status,
+		Status:    o.Status.toDomain(),
 		Price:     o.Price,
 		Products:  outProducts,
 	}
@@ -229,6 +228,35 @@ func (o *Order) extractProductsIDsFromJSON() []uuid.UUID {
 	}
 
 	return productIDs
+}
+
+type OrderStatus int
+
+const (
+	ORDER_STATUS_OPEN OrderStatus = iota
+	ORDER_STATUS_WAITING_PAYMENT
+	ORDER_STATUS_RECEIVED
+	ORDER_STATUS_PREPARING
+	ORDER_STATUS_DONE
+	ORDER_STATUS_FINISHED
+)
+
+func (oS OrderStatus) toDomain() string {
+	switch oS {
+	case ORDER_STATUS_OPEN:
+		return "Aberto"
+	case ORDER_STATUS_WAITING_PAYMENT:
+		return "Aguardando Pagamento"
+	case ORDER_STATUS_RECEIVED:
+		return "Recebido"
+	case ORDER_STATUS_PREPARING:
+		return "Em Preparação"
+	case ORDER_STATUS_DONE:
+		return "Pronto"
+	case ORDER_STATUS_FINISHED:
+		return "Finalizado"
+	}
+	return "UNSET"
 }
 
 type Payment struct {
