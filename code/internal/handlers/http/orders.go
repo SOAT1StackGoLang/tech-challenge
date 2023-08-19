@@ -20,14 +20,14 @@ type (
 	}
 
 	Order struct {
+		ID        uuid.UUID `json:"id" description:"ID do Pedido"`
 		PaymentID string    `json:"payment_id,omitempty" description:"ID do pagamento"`
 		CreatedAt time.Time `json:"created_at" description:"Data de criação"`
 		UpdatedAt time.Time `json:"updated_at,omitempty" description:"Data de atualização"`
 		DeletedAt time.Time `json:"deleted_at,omitempty" description:"Data de deleção"`
 		Price     string    `json:"price" description:"Preço do pedido"`
 		Status    string    `json:"status" description:"Status do pedido"`
-		InsertionOrder
-		UpdateOrder
+		Products  []Product `json:"products" description:"Lista de Pedidos"`
 	}
 
 	InsertionOrder struct {
@@ -41,7 +41,7 @@ type (
 	}
 
 	UpdateOrder struct {
-		ID string `json:"id" description:"ID do Produto"`
+		ID string `json:"id" description:"ID do Pedido"`
 		InsertionOrder
 	}
 
@@ -59,53 +59,40 @@ type (
 	}
 )
 
-func (uO *UpdateOrder) fromDomain(order *domain.Order) {
-	if uO == nil {
-		uO = &UpdateOrder{}
-	}
-
-	uO.InsertionOrder.fromDomain(order)
-	uO.ID = order.ID.String()
-}
-
-func (iO *InsertionOrder) fromDomain(order *domain.Order) {
-	if iO == nil {
-		iO = &InsertionOrder{}
-	}
-	iO.UserID = order.UserID.String()
-	iO.ProductsIDs = order.ProductsIDs
-}
-
 func (o *Order) fromDomain(order *domain.Order) {
 	if o == nil {
 		o = &Order{}
 	}
-	var iO InsertionOrder
-	iO.fromDomain(order)
-	var uO UpdateOrder
-	uO.fromDomain(order)
-	o.InsertionOrder = iO
-	o.UpdateOrder = uO
+
+	o.ID = order.ID
 
 	var p string
 	if !order.Price.IsZero() {
 		p = helpers.ParseDecimalToString(order.Price)
 		o.Price = p
 	}
-	o.PaymentID = order.PaymentID.String()
+
+	var products []Product
+	for _, dP := range order.Products {
+		p := Product{}
+		p.fromDomain(&dP)
+		products = append(products, p)
+	}
+
+	o.Products = products
+
+	if order.PaymentID != uuid.Nil {
+		o.PaymentID = order.PaymentID.String()
+	}
 	o.CreatedAt = order.CreatedAt
-	o.UpdatedAt = order.UpdatedAt
-	o.DeletedAt = order.DeletedAt
+	if !order.UpdatedAt.IsZero() {
+		o.UpdatedAt = order.UpdatedAt
+	}
+	if !order.DeletedAt.IsZero() {
+		o.DeletedAt = order.DeletedAt
+	}
 	o.Status = order.Status
 }
-
-//func (oD *Order) toDomain() *domain.Order {
-//	var order *domain.Order
-//	id := helpers.SafeUUIDFromString(oD.ID)
-//	uID := helpers.SafeUUIDFromString(oD.ID)
-//	pID := helpers.SafeUUIDFromString(oD.PaymentID)
-//	return domain.ParseToDomainOrder(id, uID, pID, nil, )
-//}
 
 func (oH *OrdersHttpHandler) handleGetOrder(request *restful.Request, response *restful.Response) {
 	var queryStruct QueryStruct
@@ -137,7 +124,9 @@ func (oH *OrdersHttpHandler) handleCreateOrder(request *restful.Request, respons
 		return
 	}
 
-	order, err := oH.ordersUC.CreateOrder(oH.ctx, helpers.SafeUUIDFromString(insertOrder.UserID), insertOrder.ProductsIDs)
+	dPs := oH.productsToDomainProducts(insertOrder.ProductsIDs)
+
+	order, err := oH.ordersUC.CreateOrder(oH.ctx, helpers.SafeUUIDFromString(insertOrder.UserID), dPs)
 	if err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
 
@@ -147,6 +136,16 @@ func (oH *OrdersHttpHandler) handleCreateOrder(request *restful.Request, respons
 	var out Order
 	out.fromDomain(order)
 	_ = response.WriteAsJson(out)
+}
+
+func (oH *OrdersHttpHandler) productsToDomainProducts(products []uuid.UUID) []domain.Product {
+	var dPs []domain.Product
+	for _, p := range products {
+		dP := &domain.Product{ID: p}
+
+		dPs = append(dPs, *dP)
+	}
+	return dPs
 }
 
 func (oH *OrdersHttpHandler) handleAddProductsIntoOrder(request *restful.Request, response *restful.Response) {
@@ -158,7 +157,9 @@ func (oH *OrdersHttpHandler) handleAddProductsIntoOrder(request *restful.Request
 	id := helpers.SafeUUIDFromString(addRequest.ID)
 	uid := helpers.SafeUUIDFromString(addRequest.InsertionOrder.UserID)
 
-	order, err := oH.ordersUC.InsertProductsIntoOrder(oH.ctx, uid, id, addRequest.InsertionOrder.ProductsIDs)
+	dPs := oH.productsToDomainProducts(addRequest.InsertionOrder.ProductsIDs)
+
+	order, err := oH.ordersUC.InsertProductsIntoOrder(oH.ctx, uid, id, dPs)
 	if err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
 		return
@@ -170,15 +171,16 @@ func (oH *OrdersHttpHandler) handleAddProductsIntoOrder(request *restful.Request
 }
 
 func (oH *OrdersHttpHandler) handleRemoveProductsOfOrder(request *restful.Request, response *restful.Response) {
-	var addRequest UpdateOrder
-	if err := request.ReadEntity(&addRequest); err != nil {
+	var removeReq UpdateOrder
+	if err := request.ReadEntity(&removeReq); err != nil {
 		_ = response.WriteError(http.StatusBadRequest, err)
 		return
 	}
-	id := helpers.SafeUUIDFromString(addRequest.ID)
-	uid := helpers.SafeUUIDFromString(addRequest.InsertionOrder.UserID)
+	id := helpers.SafeUUIDFromString(removeReq.ID)
+	uid := helpers.SafeUUIDFromString(removeReq.InsertionOrder.UserID)
 
-	order, err := oH.ordersUC.RemoveProductFromOrder(oH.ctx, uid, id, addRequest.InsertionOrder.ProductsIDs)
+	dPs := oH.productsToDomainProducts(removeReq.ProductsIDs)
+	order, err := oH.ordersUC.RemoveProductFromOrder(oH.ctx, uid, id, dPs)
 	if err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
 		return

@@ -46,6 +46,32 @@ type Product struct {
 	Price       decimal.Decimal `json:"price"`
 }
 
+type OrderProduct struct {
+	ID          uuid.UUID       `gorm:"id,primaryKey" json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	CategoryID  uuid.UUID       `json:"category_id"`
+	Price       decimal.Decimal `json:"price"`
+}
+
+func (oP *OrderProduct) toDomain() *domain.Product {
+	return &domain.Product{
+		ID:          oP.ID,
+		Name:        oP.Name,
+		Description: oP.Description,
+		CategoryID:  oP.CategoryID,
+		Price:       oP.Price,
+	}
+}
+
+func (oP *OrderProduct) fromDomain(dP *domain.Product) {
+	oP.ID = dP.ID
+	oP.Name = dP.Name
+	oP.Description = dP.Description
+	oP.CategoryID = dP.CategoryID
+	oP.Price = dP.Price
+}
+
 func (p *Product) toDomain() *domain.Product {
 	return &domain.Product{
 		ID:          p.ID,
@@ -122,7 +148,7 @@ type Order struct {
 
 func (o *Order) fromDomain(order *domain.Order) {
 	if o == nil {
-		o = &Order{}
+		panic("order is nil")
 	}
 	o.ID = order.ID
 	o.UserID = order.UserID
@@ -131,14 +157,20 @@ func (o *Order) fromDomain(order *domain.Order) {
 	o.Status = order.Status
 	o.Price = order.Price
 
-	// Convert ProductsIDs slice of uuid.UUID to a JSON array
-	productsJSON, err := json.Marshal(order.ProductsIDs)
-	if err != nil {
-		// Handle error
+	var products []OrderProduct
+	for _, p := range order.Products {
+		oP := OrderProduct{}
+		oP.fromDomain(&p)
+		products = append(products, oP)
 	}
 
-	// Create a new json.RawMessage object from the JSON-encoded byte slice
-	o.Products = json.RawMessage(productsJSON)
+	productsJSON, err := json.Marshal(products)
+	if err != nil {
+		//TODO handle properly
+		panic("failed to marshal products")
+	}
+
+	o.Products = productsJSON
 
 	if !order.UpdatedAt.IsZero() {
 		o.UpdatedAt = sql.NullTime{
@@ -155,7 +187,32 @@ func (o *Order) fromDomain(order *domain.Order) {
 }
 
 func (o *Order) toDomain() *domain.Order {
-	// Unmarshal the JSON-encoded byte slice to a slice of strings
+	var products []Product
+	err := json.Unmarshal(o.Products, &products)
+	if err != nil {
+		// TODO handle properly
+		panic("failed to unmarshal products")
+	}
+
+	var outProducts []domain.Product
+	for _, v := range products {
+		outProducts = append(outProducts, *v.toDomain())
+	}
+
+	return &domain.Order{
+		ID:        o.ID,
+		UserID:    o.UserID,
+		PaymentID: o.PaymentID,
+		CreatedAt: o.CreatedAt,
+		UpdatedAt: o.UpdatedAt.Time,
+		DeletedAt: o.DeletedAt.Time,
+		Status:    o.Status,
+		Price:     o.Price,
+		Products:  outProducts,
+	}
+}
+
+func (o *Order) extractProductsIDsFromJSON() []uuid.UUID {
 	var products []string
 	err := json.Unmarshal(o.Products, &products)
 	if err != nil {
@@ -171,17 +228,7 @@ func (o *Order) toDomain() *domain.Order {
 		}
 	}
 
-	return &domain.Order{
-		ID:          o.ID,
-		UserID:      o.UserID,
-		PaymentID:   o.PaymentID,
-		CreatedAt:   o.CreatedAt,
-		UpdatedAt:   o.UpdatedAt.Time,
-		DeletedAt:   o.DeletedAt.Time,
-		Status:      o.Status,
-		Price:       o.Price,
-		ProductsIDs: productIDs,
-	}
+	return productIDs
 }
 
 type Payment struct {
