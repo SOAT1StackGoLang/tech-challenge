@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/usecases"
 	"time"
 
@@ -72,7 +73,8 @@ func (o *ordersRepositoryImpl) ListOrders(ctx context.Context, limit, offset int
 	if err = o.db.WithContext(ctx).Table(ordersTable).
 		Limit(limit).
 		Offset(offset).
-		Order("created_at ASC").
+		Order("status ASC").
+		Where(fmt.Sprintf("status > %s AND status <> %s ", ORDER_STATUS_WAITING_PAYMENT, ORDER_STATUS_FINISHED)).
 		Scan(&saveOrders).Error; err != nil {
 		o.log.Errorw(
 			"failed listing orders",

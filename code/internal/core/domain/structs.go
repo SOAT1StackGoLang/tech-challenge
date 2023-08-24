@@ -90,17 +90,6 @@ type Order struct {
 	Products  []Product
 }
 
-func ParseToDomainOrder(
-	ID uuid.UUID,
-	userID uuid.UUID,
-	paymentID uuid.UUID,
-	price decimal.Decimal,
-	status string,
-	products []Product,
-) *Order {
-	return &Order{ID: ID, UserID: userID, PaymentID: paymentID, Price: price, Status: status, Products: products}
-}
-
 func NewOrder(ID uuid.UUID, userID uuid.UUID, createdAt time.Time, products []Product) *Order {
 	return &Order{ID: ID, UserID: userID, CreatedAt: createdAt, Products: products}
 }
@@ -126,3 +115,12 @@ type Payment struct {
 func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, userID uuid.UUID) *Payment {
 	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, UserID: userID}
 }
+
+const (
+	ORDER_STATUS_OPEN            = "Aberto"
+	ORDER_STATUS_WAITING_PAYMENT = "Aguardando Pagamento"
+	ORDER_STATUS_RECEIVED        = "Recebido"
+	ORDER_STATUS_PREPARING       = "Em Preparação"
+	ORDER_STATUS_DONE            = "Pronto"
+	ORDER_STATUS_FINISHED        = "Finalizado"
+)

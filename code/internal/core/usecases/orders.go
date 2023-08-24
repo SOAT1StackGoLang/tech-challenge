@@ -19,6 +19,30 @@ type ordersUseCase struct {
 	prodUC     ports.ProductsUseCase
 }
 
+func (o *ordersUseCase) Checkout(ctx context.Context, userID, paymentID uuid.UUID) (*domain.Order, error) {
+	var order *domain.Order
+
+	order, err := o.ordersRepo.GetOrder(ctx, paymentID)
+	if err != nil {
+		return nil, err
+	}
+	order.Status = domain.ORDER_STATUS_WAITING_PAYMENT
+
+	defer func() {
+		// non blocking step
+		order, err = o.ordersRepo.UpdateOrder(ctx, order)
+		if err != nil {
+			o.logger.Errorw(
+				"failed updating order status after checkout",
+				zap.Error(err),
+			)
+		}
+	}()
+
+	return order, err
+
+}
+
 func NewOrdersUseCase(logger *zap.SugaredLogger, ordersRepo ports.OrdersRepository, userUC ports.UsersUseCase, prodUC ports.ProductsUseCase) ports.OrdersUseCase {
 	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC}
 }
