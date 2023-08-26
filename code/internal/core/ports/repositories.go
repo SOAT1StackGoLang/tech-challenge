@@ -40,5 +40,5 @@ type OrdersRepository interface {
 }
 
 type PaymentRepository interface {
-	PayOrder(ctx context.Context, payment *domain.Payment) (*domain.Payment, error)
+	CreatePayment(ctx context.Context, payment *domain.Payment) (*domain.Payment, error)
 }

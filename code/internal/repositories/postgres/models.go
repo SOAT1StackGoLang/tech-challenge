@@ -142,7 +142,7 @@ type Order struct {
 	UpdatedAt sql.NullTime
 	DeletedAt sql.NullTime
 	Price     decimal.Decimal
-	Status    string
+	Status    OrderStatus
 	Products  json.RawMessage `json:"products" gorm:"type:jsonb"`
 }
 
@@ -154,7 +154,6 @@ func (o *Order) fromDomain(order *domain.Order) {
 	o.UserID = order.UserID
 	o.PaymentID = order.PaymentID
 	o.CreatedAt = order.CreatedAt
-	o.Status = order.Status
 	o.Price = order.Price
 
 	var products []OrderProduct
@@ -184,6 +183,9 @@ func (o *Order) fromDomain(order *domain.Order) {
 			Valid: true,
 		}
 	}
+
+	var oS OrderStatus
+	o.Status = oS.fromDomain(order.Status)
 }
 
 func (o *Order) toDomain() *domain.Order {
@@ -206,7 +208,7 @@ func (o *Order) toDomain() *domain.Order {
 		CreatedAt: o.CreatedAt,
 		UpdatedAt: o.UpdatedAt.Time,
 		DeletedAt: o.DeletedAt.Time,
-		Status:    o.Status,
+		Status:    o.Status.toDomain(),
 		Price:     o.Price,
 		Products:  outProducts,
 	}
@@ -231,36 +233,84 @@ func (o *Order) extractProductsIDsFromJSON() []uuid.UUID {
 	return productIDs
 }
 
+type OrderStatus int
+
+const (
+	ORDER_STATUS_UNSET OrderStatus = iota
+	ORDER_STATUS_OPEN
+	ORDER_STATUS_WAITING_PAYMENT
+	ORDER_STATUS_RECEIVED
+	ORDER_STATUS_PREPARING
+	ORDER_STATUS_DONE
+	ORDER_STATUS_FINISHED
+)
+
+func (oS OrderStatus) toDomain() string {
+	switch oS {
+	case ORDER_STATUS_OPEN:
+		return domain.ORDER_STATUS_OPEN
+	case ORDER_STATUS_WAITING_PAYMENT:
+		return domain.ORDER_STATUS_WAITING_PAYMENT
+	case ORDER_STATUS_RECEIVED:
+		return domain.ORDER_STATUS_RECEIVED
+	case ORDER_STATUS_PREPARING:
+		return domain.ORDER_STATUS_PREPARING
+	case ORDER_STATUS_DONE:
+		return domain.ORDER_STATUS_DONE
+	case ORDER_STATUS_FINISHED:
+		return domain.ORDER_STATUS_FINISHED
+	}
+	return domain.ORDER_STATUS_UNSET
+}
+
+func (oS OrderStatus) fromDomain(status string) OrderStatus {
+	switch status {
+	case domain.ORDER_STATUS_OPEN:
+		return ORDER_STATUS_OPEN
+	case domain.ORDER_STATUS_WAITING_PAYMENT:
+		return ORDER_STATUS_WAITING_PAYMENT
+	case domain.ORDER_STATUS_RECEIVED:
+		return ORDER_STATUS_RECEIVED
+	case domain.ORDER_STATUS_PREPARING:
+		return ORDER_STATUS_PREPARING
+	case domain.ORDER_STATUS_DONE:
+		return ORDER_STATUS_DONE
+	case domain.ORDER_STATUS_FINISHED:
+		return ORDER_STATUS_FINISHED
+	}
+	return ORDER_STATUS_UNSET
+}
+
 type Payment struct {
 	ID        uuid.UUID `gorm:"id,primaryKey"`
 	CreatedAt time.Time
+	PaidAt    sql.NullTime
+	Value     decimal.Decimal `json:"value"`
 	OrderID   uuid.UUID
-	UserID    uuid.UUID
 }
 
 func (p *Payment) fromDomain(dP *domain.Payment) {
-	if p == nil {
-		p = &Payment{ID: uuid.New(), CreatedAt: time.Now()}
-	}
+	p.ID = dP.ID
 	p.OrderID = dP.OrderID
-	p.UserID = dP.UserID
 	p.CreatedAt = dP.CreatedAt
-}
+	p.Value = dP.Price
 
-func (p *Payment) newPayment(userID, orderID uuid.UUID) {
-	if p == nil {
-		p = &Payment{ID: uuid.New(), CreatedAt: time.Now()}
+	if !dP.PaidAt.IsZero() {
+		p.PaidAt = sql.NullTime{
+			Time:  dP.PaidAt,
+			Valid: true,
+		}
+	} else {
+		p.PaidAt = sql.NullTime{Valid: false}
 	}
-	p.OrderID = orderID
-	p.UserID = userID
-	p.CreatedAt = time.Now()
 }
 
 func (p *Payment) toDomain() *domain.Payment {
 	return &domain.Payment{
 		ID:        p.ID,
 		CreatedAt: p.CreatedAt,
+		PaidAt:    p.PaidAt.Time,
+		Price:     p.Value,
 		OrderID:   p.OrderID,
-		UserID:    p.UserID,
 	}
 }

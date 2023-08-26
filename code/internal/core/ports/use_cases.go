@@ -34,10 +34,10 @@ type OrdersUseCase interface {
 	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []domain.Product) (*domain.Order, error)
 	RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []domain.Product) (*domain.Order, error)
 	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
-	SetOrderAsPaid(ctx context.Context, payment *domain.Payment) error
 	ListOrders(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error)
+	Checkout(ctx context.Context, userID, paymentID uuid.UUID) (*domain.Order, error)
 }
 
 type PaymentUseCase interface {
-	PayOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Payment, error)
+	CreatePayment(ctx context.Context, orderID *domain.Order) (*domain.Payment, error)
 }

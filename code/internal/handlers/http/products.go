@@ -23,9 +23,9 @@ type (
 	Product struct {
 		UpdateProduct
 		InsertionProduct
-		CreatedAt time.Time `json:"created_at" readOnly:"true"`
-		UpdatedAt time.Time `json:"updated_at,omitempty" readOnly:"true"`
-		DeletedAt time.Time `json:"deleted_at,omitempty" readOnly:"true"`
+		CreatedAt string `json:"created_at,omitempty" readOnly:"true"`
+		UpdatedAt string `json:"updated_at,omitempty" readOnly:"true"`
+		DeletedAt string `json:"deleted_at,omitempty" readOnly:"true"`
 	}
 
 	InsertionProduct struct {
@@ -57,8 +57,23 @@ func (p *Product) fromDomain(product *domain.Product) {
 	price := helpers.ParseDecimalToString(product.Price)
 
 	p.ID = product.ID.String()
-	p.CreatedAt = product.CreatedAt
-	p.UpdatedAt = product.UpdatedAt
+
+	if !product.CreatedAt.IsZero() {
+		p.CreatedAt = product.CreatedAt.Format(time.RFC3339)
+	} else {
+		p.CreatedAt = ""
+	}
+	if !product.UpdatedAt.IsZero() {
+		p.UpdatedAt = product.UpdatedAt.Format(time.RFC3339)
+	} else {
+		p.UpdatedAt = ""
+	}
+	if !product.DeletedAt.IsZero() {
+		p.DeletedAt = product.UpdatedAt.Format(time.RFC3339)
+	} else {
+		p.DeletedAt = ""
+	}
+
 	p.Name = product.Name
 	p.Description = product.Description
 	p.CategoryID = product.CategoryID.String()
@@ -73,9 +88,6 @@ func (p *Product) toDomain() *domain.Product {
 	return domain.ParseProductToDomain(
 		helpers.SafeUUIDFromString(p.ID),
 		helpers.SafeUUIDFromString(p.CategoryID),
-		p.CreatedAt,
-		p.UpdatedAt,
-		p.DeletedAt,
 		p.Name,
 		p.Description,
 		p.Price,
@@ -95,13 +107,9 @@ func (uP *UpdateProduct) toDomain() *domain.Product {
 		panic("empty product")
 	}
 
-	var nilTime time.Time
 	return domain.ParseProductToDomain(
 		helpers.SafeUUIDFromString(uP.ID),
 		helpers.SafeUUIDFromString(uP.CategoryID),
-		nilTime,
-		nilTime,
-		nilTime,
 		uP.Name,
 		uP.Description,
 		uP.Price,
