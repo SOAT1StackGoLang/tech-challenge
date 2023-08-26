@@ -14,12 +14,27 @@ type paymentsRepositoryImpl struct {
 	orderUC ports.OrdersUseCase
 }
 
-func (p paymentsRepositoryImpl) PayOrder(ctx context.Context, payment *domain.Payment) (*domain.Payment, error) {
-	return payment, nil
+const paymentTable = "lanchonete_payments"
+
+func (p paymentsRepositoryImpl) CreatePayment(ctx context.Context, in *domain.Payment) (*domain.Payment, error) {
+	payment := new(Payment)
+	payment.fromDomain(in)
+
+	if err := p.db.WithContext(ctx).Table(paymentTable).Create(&payment).Error; err != nil {
+		p.log.Errorw(
+			"db failed at CreatePayment",
+			zap.Any("payment_input", in),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	out := new(domain.Payment)
+	out = payment.toDomain()
+
+	return out, nil
 }
 
-func NewPaymentsRepository(log *zap.SugaredLogger, db *gorm.DB, orderUC ports.OrdersUseCase) ports.PaymentRepository {
-	return &paymentsRepositoryImpl{log: log, db: db, orderUC: orderUC}
+func NewPaymentsRepository(log *zap.SugaredLogger, db *gorm.DB) ports.PaymentRepository {
+	return &paymentsRepositoryImpl{log: log, db: db}
 }
-
-//const paymentsTable = "lanchonete_payments"

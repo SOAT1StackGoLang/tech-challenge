@@ -15,21 +15,16 @@ type paymentsUseCase struct {
 	paymentRepo ports.PaymentRepository
 }
 
-const OrderPaidStatus = "PAGA"
-
-func NewPaymentsUseCase(logger *zap.SugaredLogger, orderUC ports.OrdersUseCase, repo ports.PaymentRepository) ports.PaymentUseCase {
-	return &paymentsUseCase{logger: logger, orderUC: orderUC, paymentRepo: repo}
+func NewPaymentsUseCase(logger *zap.SugaredLogger, repo ports.PaymentRepository) ports.PaymentUseCase {
+	return &paymentsUseCase{logger: logger, paymentRepo: repo}
 }
 
-func (p *paymentsUseCase) PayOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Payment, error) {
-	payment := domain.NewPayment(uuid.New(), time.Now(), orderID, userID)
+func (p *paymentsUseCase) CreatePayment(ctx context.Context, order *domain.Order) (*domain.Payment, error) {
 
-	receipt, err := p.paymentRepo.PayOrder(ctx, payment)
+	payment := domain.NewPayment(uuid.New(), time.Now(), order.ID, order.Price)
+
+	receipt, err := p.paymentRepo.CreatePayment(ctx, payment)
 	if err != nil {
-		return nil, err
-	}
-
-	if err = p.orderUC.SetOrderAsPaid(ctx, receipt); err != nil {
 		return nil, err
 	}
 

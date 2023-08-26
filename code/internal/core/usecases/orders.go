@@ -17,19 +17,27 @@ type ordersUseCase struct {
 	ordersRepo ports.OrdersRepository
 	userUC     ports.UsersUseCase
 	prodUC     ports.ProductsUseCase
+	paymentsUC ports.PaymentUseCase
 }
 
-func (o *ordersUseCase) Checkout(ctx context.Context, userID, paymentID uuid.UUID) (*domain.Order, error) {
+func (o *ordersUseCase) Checkout(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error) {
 	var order *domain.Order
 
-	order, err := o.ordersRepo.GetOrder(ctx, paymentID)
+	order, err := o.GetOrder(ctx, userID, orderID)
 	if err != nil {
 		return nil, err
 	}
 	order.Status = domain.ORDER_STATUS_WAITING_PAYMENT
 
+	payment, err := o.paymentsUC.CreatePayment(ctx, order)
+	if err != nil {
+		return nil, err
+	}
+	order.PaymentID = payment.ID
+
 	defer func() {
 		// non blocking step
+		order.UpdatedAt = time.Now()
 		order, err = o.ordersRepo.UpdateOrder(ctx, order)
 		if err != nil {
 			o.logger.Errorw(
@@ -43,8 +51,14 @@ func (o *ordersUseCase) Checkout(ctx context.Context, userID, paymentID uuid.UUI
 
 }
 
-func NewOrdersUseCase(logger *zap.SugaredLogger, ordersRepo ports.OrdersRepository, userUC ports.UsersUseCase, prodUC ports.ProductsUseCase) ports.OrdersUseCase {
-	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC}
+func NewOrdersUseCase(
+	logger *zap.SugaredLogger,
+	ordersRepo ports.OrdersRepository,
+	userUC ports.UsersUseCase,
+	prodUC ports.ProductsUseCase,
+	paymentsUC ports.PaymentUseCase,
+) ports.OrdersUseCase {
+	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC, paymentsUC: paymentsUC}
 }
 
 func (o *ordersUseCase) ListOrders(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error) {
@@ -167,17 +181,4 @@ func (o *ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UU
 	}
 
 	return o.ordersRepo.DeleteOrder(ctx, orderID)
-}
-
-func (o *ordersUseCase) SetOrderAsPaid(ctx context.Context, payment *domain.Payment) error {
-	// Check ownership
-	order, err := o.GetOrder(ctx, payment.UserID, payment.OrderID)
-	if err != nil {
-		return err
-	}
-	if order.Status == OrderPaidStatus {
-		return nil
-	}
-
-	return o.ordersRepo.SetOrderAsPaid(ctx, payment)
 }

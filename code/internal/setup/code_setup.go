@@ -58,11 +58,11 @@ func SetupCode() {
 	prodRepo := pgxrepo.NewPgxProductsRepository(gormDB, log)
 	prodUseCase := usecases.NewProductsUseCase(prodRepo, userUseCase, log)
 
-	orderRepo := pgxrepo.NewPgxOrdersRepository(log, gormDB)
-	orderUseCase := usecases.NewOrdersUseCase(log, orderRepo, userUseCase, prodUseCase)
+	paymentRepo := pgxrepo.NewPaymentsRepository(log, gormDB)
+	paymenteUseCase := usecases.NewPaymentsUseCase(log, paymentRepo)
 
-	paymentRepo := pgxrepo.NewPaymentsRepository(log, gormDB, orderUseCase)
-	paymenteUseCase := usecases.NewPaymentsUseCase(log, orderUseCase, paymentRepo)
+	orderRepo := pgxrepo.NewPgxOrdersRepository(log, gormDB)
+	orderUseCase := usecases.NewOrdersUseCase(log, orderRepo, userUseCase, prodUseCase, paymenteUseCase)
 
 	ws := new(restful.WebService)
 	ws.

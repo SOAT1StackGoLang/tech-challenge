@@ -3,8 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/usecases"
 	"time"
 
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
@@ -74,7 +72,7 @@ func (o *ordersRepositoryImpl) ListOrders(ctx context.Context, limit, offset int
 		Limit(limit).
 		Offset(offset).
 		Order("status ASC").
-		Where(fmt.Sprintf("status > %s AND status <> %s ", ORDER_STATUS_WAITING_PAYMENT, ORDER_STATUS_FINISHED)).
+		Where("status > ? AND status < ? ", ORDER_STATUS_WAITING_PAYMENT, ORDER_STATUS_FINISHED).
 		Scan(&saveOrders).Error; err != nil {
 		o.log.Errorw(
 			"failed listing orders",
@@ -84,6 +82,7 @@ func (o *ordersRepositoryImpl) ListOrders(ctx context.Context, limit, offset int
 	}
 
 	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Where("status > ? AND status < ? ", ORDER_STATUS_WAITING_PAYMENT, ORDER_STATUS_FINISHED).
 		Count(&total).Error; err != nil {
 		o.log.Errorw(
 			"failed counting orders",
@@ -156,35 +155,25 @@ func (o *ordersRepositoryImpl) UpdateOrder(ctx context.Context, in *domain.Order
 	order := &Order{}
 	order.fromDomain(in)
 
-	order.UpdatedAt.Time = time.Now()
+	order.UpdatedAt = sql.NullTime{
+		Time:  in.UpdatedAt,
+		Valid: true,
+	}
 
-	if in.Status == "" {
-		if err := o.db.WithContext(ctx).Table(ordersTable).
-			Updates(&order).
-			Omit("status").
-			Where("id = ?", in.ID).
-			Error; err != nil {
-			o.log.Errorw(
-				"db failed updating order",
-				zap.Any("in_order", in),
-				zap.Any("repo_order", order),
-				zap.Error(err),
-			)
-			return nil, err
-		}
-	} else {
-		if err := o.db.WithContext(ctx).Table(ordersTable).
-			Updates(&order).
-			Where("id = ?", in.ID).
-			Error; err != nil {
-			o.log.Errorw(
-				"db failed updating order",
-				zap.Any("in_order", in),
-				zap.Any("repo_order", order),
-				zap.Error(err),
-			)
-			return nil, err
-		}
+	var oS OrderStatus
+	order.Status = oS.fromDomain(in.Status)
+
+	if err := o.db.WithContext(ctx).Table(ordersTable).
+		Updates(&order).
+		Where("id = ?", in.ID).
+		Error; err != nil {
+		o.log.Errorw(
+			"db failed updating order",
+			zap.Any("in_order", in),
+			zap.Any("repo_order", order),
+			zap.Error(err),
+		)
+		return nil, err
 	}
 
 	return order.toDomain(), nil
@@ -209,25 +198,25 @@ func (o *ordersRepositoryImpl) DeleteOrder(ctx context.Context, orderID uuid.UUI
 }
 
 func (o *ordersRepositoryImpl) SetOrderAsPaid(ctx context.Context, payment *domain.Payment) (err error) {
-	updatedAt := sql.NullTime{
-		Time:  time.Now(),
-		Valid: true,
-	}
+	//updatedAt := sql.NullTime{
+	//	Time:  time.Now(),
+	//	Valid: true,
+	//}
 
-	if err = o.db.WithContext(ctx).Table(ordersTable).
-		Where("id = ?", payment.OrderID).
-		UpdateColumns(map[string]any{
-			"status":     usecases.OrderPaidStatus,
-			"updated_at": updatedAt,
-			"payment_id": payment.ID,
-		}).
-		Error; err != nil {
-		o.log.Errorw(
-			"db failed finishing order",
-			zap.String("order_id", payment.OrderID.String()),
-			zap.Error(err),
-		)
-	}
+	//if err = o.db.WithContext(ctx).Table(ordersTable).
+	//	Where("id = ?", payment.OrderID).
+	//	UpdateColumns(map[string]any{
+	//		"status":     usecases.OrderPaidStatus,
+	//		"updated_at": updatedAt,
+	//		"payment_id": payment.ID,
+	//	}).
+	//	Error; err != nil {
+	//	o.log.Errorw(
+	//		"db failed finishing order",
+	//		zap.String("order_id", payment.OrderID.String()),
+	//		zap.Error(err),
+	//	)
+	//}
 
 	return err
 }

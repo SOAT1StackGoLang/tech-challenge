@@ -19,12 +19,22 @@ type (
 		ordersUC ports.OrdersUseCase
 	}
 
+	Checkout struct {
+		Order       Order       `json:"order" description:"Pedido"`
+		PaymentInfo PaymentInfo `json:"payment_info" description:"Informações de Cobrança"`
+	}
+
+	PaymentInfo struct {
+		ID    string `json:"payment_id"`
+		Value string `json:"value" description:"Valor a ser pago"`
+	}
+
 	Order struct {
 		ID        uuid.UUID `json:"id" description:"ID do Pedido"`
 		PaymentID string    `json:"payment_id,omitempty" description:"ID do pagamento"`
-		CreatedAt time.Time `json:"created_at" description:"Data de criação"`
-		UpdatedAt time.Time `json:"updated_at,omitempty" description:"Data de atualização"`
-		DeletedAt time.Time `json:"deleted_at,omitempty" description:"Data de deleção"`
+		CreatedAt string    `json:"created_at" description:"Data de criação"`
+		UpdatedAt string    `json:"updated_at,omitempty" description:"Data de atualização"`
+		DeletedAt string    `json:"deleted_at,omitempty" description:"Data de deleção"`
 		Price     string    `json:"price" description:"Preço do pedido"`
 		Status    string    `json:"status" description:"Status do pedido"`
 		Products  []Product `json:"products" description:"Lista de Pedidos"`
@@ -57,6 +67,11 @@ type (
 		Limit  int    `json:"limit" default:"10" description:"Quantidade de registros"`
 		Offset int    `json:"offset"`
 	}
+
+	OrderCheckoutRequest struct {
+		UserID string `json:"user_id"`
+		ID     string `json:"id" description:"ID do Pedido"`
+	}
 )
 
 func (o *Order) fromDomain(order *domain.Order) {
@@ -84,12 +99,16 @@ func (o *Order) fromDomain(order *domain.Order) {
 	if order.PaymentID != uuid.Nil {
 		o.PaymentID = order.PaymentID.String()
 	}
-	o.CreatedAt = order.CreatedAt
+	o.CreatedAt = order.CreatedAt.Format(time.RFC3339)
 	if !order.UpdatedAt.IsZero() {
-		o.UpdatedAt = order.UpdatedAt
+		o.UpdatedAt = order.UpdatedAt.Format(time.RFC3339)
+	} else {
+		o.UpdatedAt = ""
 	}
 	if !order.DeletedAt.IsZero() {
-		o.DeletedAt = order.DeletedAt
+		o.DeletedAt = order.DeletedAt.Format(time.RFC3339)
+	} else {
+		o.DeletedAt = ""
 	}
 	o.Status = order.Status
 }
@@ -210,6 +229,40 @@ func (oH *OrdersHttpHandler) handleDeleteOrder(request *restful.Request, respons
 	response.WriteHeader(http.StatusOK)
 }
 
+func (oH *OrdersHttpHandler) handleCheckout(request *restful.Request, response *restful.Response) {
+	var oC OrderCheckoutRequest
+	if err := request.ReadEntity(&oC); err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	uid, err := uuid.Parse(oC.UserID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	id := helpers.SafeUUIDFromString(oC.ID)
+	order, err := oH.ordersUC.Checkout(oH.ctx, uid, id)
+	if err != nil {
+		_ = response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var out Checkout
+	var outOrder Order
+	outOrder.fromDomain(order)
+
+	var outPayment PaymentInfo
+	outPayment.Value = outOrder.Price
+	outPayment.ID = outOrder.PaymentID
+
+	out.Order = outOrder
+	out.PaymentInfo = outPayment
+
+	_ = response.WriteAsJson(out)
+}
+
 func (oH *OrdersHttpHandler) handleListOrders(request *restful.Request, response *restful.Response) {
 	var oLR OrderListRequest
 	if err := request.ReadEntity(&oLR); err != nil {
@@ -268,12 +321,12 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 		Reads(InsertionOrderSwagger{}).
 		Returns(http.StatusOK, "sucesso", Order{}).
 		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
-	ws.Route(ws.PUT("/orders/remove").To(handler.handleAddProductsIntoOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+	ws.Route(ws.PUT("/orders/add").To(handler.handleAddProductsIntoOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Adiciona items ao pedido").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(UpdateOrder{}).
 		Returns(http.StatusOK, "sucesso", Order{}))
-	ws.Route(ws.PUT("/orders/add").To(handler.handleRemoveProductsOfOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+	ws.Route(ws.PUT("/orders/remove").To(handler.handleRemoveProductsOfOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Remove items do pedido").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(UpdateOrder{}).
@@ -285,5 +338,11 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 		Reads(QueryStruct{}).
 		Returns(http.StatusOK, "sucesso", nil).
 		Returns(http.StatusBadRequest, "falha", nil))
+	ws.Route(ws.POST("/orders/checkout").To(handler.handleCheckout).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Checkout de pedido").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(OrderCheckoutRequest{}).
+		Returns(http.StatusOK, "sucesso", Checkout{}).
+		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
 	return handler
 }

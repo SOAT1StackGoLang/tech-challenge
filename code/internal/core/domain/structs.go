@@ -32,9 +32,6 @@ type Product struct {
 func ParseProductToDomain(
 	ID uuid.UUID,
 	categoryID uuid.UUID,
-	createdAt time.Time,
-	updatedAt time.Time,
-	deletedAt time.Time,
 	name string,
 	description string,
 	price string,
@@ -46,9 +43,6 @@ func ParseProductToDomain(
 	return &Product{
 		ID:          ID,
 		CategoryID:  categoryID,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-		DeletedAt:   deletedAt,
 		Name:        name,
 		Description: description,
 		Price:       p,
@@ -91,7 +85,7 @@ type Order struct {
 }
 
 func NewOrder(ID uuid.UUID, userID uuid.UUID, createdAt time.Time, products []Product) *Order {
-	return &Order{ID: ID, UserID: userID, CreatedAt: createdAt, Products: products}
+	return &Order{ID: ID, UserID: userID, CreatedAt: createdAt, Products: products, Status: ORDER_STATUS_OPEN}
 }
 
 type Category struct {
@@ -108,19 +102,21 @@ func NewCategory(ID uuid.UUID, createdAt time.Time, name string) *Category {
 type Payment struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
+	PaidAt    time.Time
+	Price     decimal.Decimal
 	OrderID   uuid.UUID
-	UserID    uuid.UUID
 }
 
-func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, userID uuid.UUID) *Payment {
-	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, UserID: userID}
+func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, price decimal.Decimal) *Payment {
+	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, Price: price}
 }
 
 const (
-	ORDER_STATUS_OPEN            = "Aberto"
-	ORDER_STATUS_WAITING_PAYMENT = "Aguardando Pagamento"
-	ORDER_STATUS_RECEIVED        = "Recebido"
-	ORDER_STATUS_PREPARING       = "Em Preparação"
-	ORDER_STATUS_DONE            = "Pronto"
-	ORDER_STATUS_FINISHED        = "Finalizado"
+	ORDER_STATUS_UNSET           string = ""
+	ORDER_STATUS_OPEN                   = "Aberto"
+	ORDER_STATUS_WAITING_PAYMENT        = "Aguardando Pagamento"
+	ORDER_STATUS_RECEIVED               = "Recebido"
+	ORDER_STATUS_PREPARING              = "Em Preparação"
+	ORDER_STATUS_DONE                   = "Pronto"
+	ORDER_STATUS_FINISHED               = "Finalizado"
 )
