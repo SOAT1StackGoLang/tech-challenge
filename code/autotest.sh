@@ -261,7 +261,7 @@ sleep 2
 
 
 
-## Pay order ADAPTAR
+## Pay order using webhook
 echo -e "\n-----"
 echo -e "${YELLOW}Paying Order using webhook - FASE 2 ${NC}"
 echo -e "${GREEN} Item 3 da entrega ${NC}"
