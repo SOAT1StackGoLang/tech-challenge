@@ -243,9 +243,10 @@ const (
 	ORDER_STATUS_PREPARING
 	ORDER_STATUS_DONE
 	ORDER_STATUS_FINISHED
+	ORDER_STATUS_CANCELED
 )
 
-func (oS OrderStatus) toDomain() string {
+func (oS OrderStatus) toDomain() domain.OrderStatus {
 	switch oS {
 	case ORDER_STATUS_OPEN:
 		return domain.ORDER_STATUS_OPEN
@@ -259,11 +260,13 @@ func (oS OrderStatus) toDomain() string {
 		return domain.ORDER_STATUS_DONE
 	case ORDER_STATUS_FINISHED:
 		return domain.ORDER_STATUS_FINISHED
+	case ORDER_STATUS_CANCELED:
+		return domain.ORDER_STATUS_CANCELED
 	}
 	return domain.ORDER_STATUS_UNSET
 }
 
-func (oS OrderStatus) fromDomain(status string) OrderStatus {
+func (oS OrderStatus) fromDomain(status domain.OrderStatus) OrderStatus {
 	switch status {
 	case domain.ORDER_STATUS_OPEN:
 		return ORDER_STATUS_OPEN
@@ -277,6 +280,8 @@ func (oS OrderStatus) fromDomain(status string) OrderStatus {
 		return ORDER_STATUS_DONE
 	case domain.ORDER_STATUS_FINISHED:
 		return ORDER_STATUS_FINISHED
+	case domain.ORDER_STATUS_CANCELED:
+		return ORDER_STATUS_CANCELED
 	}
 	return ORDER_STATUS_UNSET
 }
@@ -284,9 +289,39 @@ func (oS OrderStatus) fromDomain(status string) OrderStatus {
 type Payment struct {
 	ID        uuid.UUID `gorm:"id,primaryKey"`
 	CreatedAt time.Time
-	PaidAt    sql.NullTime
+	UpdatedAt sql.NullTime
 	Value     decimal.Decimal `json:"value"`
 	OrderID   uuid.UUID
+	Status    PaymentStatus
+}
+
+type PaymentStatus string
+
+const (
+	PAYMENT_SATUS_OPEN      PaymentStatus = "Aberto"
+	PAYMENT_STATUS_APPROVED               = "Aprovado"
+	PAYMENT_STATUS_REFUSED                = "Recusado"
+)
+
+func (pS PaymentStatus) toDomain() domain.PaymentStatus {
+	switch pS {
+	case PAYMENT_SATUS_OPEN:
+		return domain.PAYMENT_STATUS_OPEN
+	case PAYMENT_STATUS_APPROVED:
+		return domain.PAYMENT_STATUS_APPROVED
+	}
+	return domain.PAYMENT_SATUS_REFUSED
+}
+
+func (pS PaymentStatus) fromDomain(in domain.PaymentStatus) PaymentStatus {
+	switch in {
+	case domain.PAYMENT_STATUS_APPROVED:
+		return PAYMENT_STATUS_APPROVED
+	case domain.PAYMENT_SATUS_REFUSED:
+		return PAYMENT_STATUS_REFUSED
+
+	}
+	return PAYMENT_SATUS_OPEN
 }
 
 func (p *Payment) fromDomain(dP *domain.Payment) {
@@ -295,22 +330,29 @@ func (p *Payment) fromDomain(dP *domain.Payment) {
 	p.CreatedAt = dP.CreatedAt
 	p.Value = dP.Price
 
-	if !dP.PaidAt.IsZero() {
-		p.PaidAt = sql.NullTime{
-			Time:  dP.PaidAt,
+	if !dP.UpdatedAt.IsZero() {
+		p.UpdatedAt = sql.NullTime{
+			Time:  dP.UpdatedAt,
 			Valid: true,
 		}
 	} else {
-		p.PaidAt = sql.NullTime{Valid: false}
+		p.UpdatedAt = sql.NullTime{Valid: false}
 	}
+
+	var pS PaymentStatus
+	pS = pS.fromDomain(dP.Status)
+	p.Status = pS
 }
 
 func (p *Payment) toDomain() *domain.Payment {
+	var dS domain.PaymentStatus
+	dS = p.Status.toDomain()
 	return &domain.Payment{
 		ID:        p.ID,
 		CreatedAt: p.CreatedAt,
-		PaidAt:    p.PaidAt.Time,
+		UpdatedAt: p.UpdatedAt.Time,
 		Price:     p.Value,
 		OrderID:   p.OrderID,
+		Status:    dS,
 	}
 }

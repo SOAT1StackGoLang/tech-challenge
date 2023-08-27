@@ -17,6 +17,25 @@ type ordersRepositoryImpl struct {
 	db  *gorm.DB
 }
 
+func (o *ordersRepositoryImpl) GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error) {
+	order := &Order{}
+
+	var err error
+	if err = o.db.WithContext(ctx).Table(ordersTable).
+		Select("*").
+		Where("payment_id = ?", paymentID).
+		First(order).Error; err != nil {
+		o.log.Errorw(
+			"db failed getting order",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	out := order.toDomain()
+	return out, err
+}
+
 func (o *ordersRepositoryImpl) ListOrdersByUser(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error) {
 	var orders []Order
 	var total int64

@@ -264,18 +264,18 @@ else
     echo $ORDERS
 fi
 
-# Pay order
-echo -e "\n-----"
-echo -e "${YELLOW}Paying Order${NC}"
-PAY=$(curl -s --location --request POST 'localhost:8000/v1/payments' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "order_id": "'$ORDER_ID'",
-    "user_id": "123e4567-e89b-12d3-a456-426614174000"
-}')
-echo -e "$PAY" | jq
-PAY_ID=$(echo $PAY | jq -r '.id')
-sleep 2
+## Pay order ADAPTAR
+#echo -e "\n-----"
+#echo -e "${YELLOW}Paying Order${NC}"
+#PAY=$(curl -s --location --request POST 'localhost:8000/v1/payments' \
+#--header 'Content-Type: application/json' \
+#--data-raw '{
+#    "order_id": "'$ORDER_ID'",
+#    "user_id": "123e4567-e89b-12d3-a456-426614174000"
+#}')
+#echo -e "$PAY" | jq
+#PAY_ID=$(echo $PAY | jq -r '.id')
+#sleep 2
 
 # Get order after payment
 echo -e "\n-----"

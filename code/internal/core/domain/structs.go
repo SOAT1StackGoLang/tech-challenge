@@ -80,7 +80,7 @@ type Order struct {
 	UpdatedAt time.Time
 	DeletedAt time.Time
 	Price     decimal.Decimal
-	Status    string
+	Status    OrderStatus
 	Products  []Product
 }
 
@@ -102,21 +102,51 @@ func NewCategory(ID uuid.UUID, createdAt time.Time, name string) *Category {
 type Payment struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
-	PaidAt    time.Time
+	UpdatedAt time.Time
 	Price     decimal.Decimal
 	OrderID   uuid.UUID
+	Status    PaymentStatus
 }
 
-func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, price decimal.Decimal) *Payment {
-	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, Price: price}
+func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, price decimal.Decimal, status PaymentStatus) *Payment {
+	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, Price: price, Status: status}
 }
+
+type OrderStatus string
 
 const (
-	ORDER_STATUS_UNSET           string = ""
-	ORDER_STATUS_OPEN                   = "Aberto"
-	ORDER_STATUS_WAITING_PAYMENT        = "Aguardando Pagamento"
-	ORDER_STATUS_RECEIVED               = "Recebido"
-	ORDER_STATUS_PREPARING              = "Em Preparação"
-	ORDER_STATUS_DONE                   = "Pronto"
-	ORDER_STATUS_FINISHED               = "Finalizado"
+	ORDER_STATUS_UNSET           OrderStatus = ""
+	ORDER_STATUS_OPEN                        = "Aberto"
+	ORDER_STATUS_WAITING_PAYMENT             = "Aguardando Pagamento"
+	ORDER_STATUS_RECEIVED                    = "Recebido"
+	ORDER_STATUS_PREPARING                   = "Em Preparação"
+	ORDER_STATUS_DONE                        = "Pronto"
+	ORDER_STATUS_FINISHED                    = "Finalizado"
+	ORDER_STATUS_CANCELED                    = "Cancelado"
 )
+
+type PaymentStatus string
+
+const (
+	PAYMENT_STATUS_OPEN     PaymentStatus = "Aberto"
+	PAYMENT_STATUS_APPROVED               = "Aprovado"
+	PAYMENT_SATUS_REFUSED                 = "Recusado"
+)
+
+type PaymentStatusNotification struct {
+	PaymentID uuid.UUID
+	OrderID   uuid.UUID
+	Status    PaymentStatus // Can be "approved" or "denied"
+}
+
+var PaymentStatusChannel chan PaymentStatusNotification
+
+func OrderStatusFromNotification(status PaymentStatus) OrderStatus {
+	switch status {
+	case PAYMENT_STATUS_APPROVED:
+		return ORDER_STATUS_RECEIVED
+	case PAYMENT_STATUS_OPEN:
+		return ORDER_STATUS_OPEN
+	}
+	return PAYMENT_SATUS_REFUSED
+}
