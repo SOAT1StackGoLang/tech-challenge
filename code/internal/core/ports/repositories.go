@@ -31,6 +31,7 @@ type CategoriesRepository interface {
 
 type OrdersRepository interface {
 	GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error)
+	GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error)
 	CreateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
 	UpdateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
 	DeleteOrder(ctx context.Context, orderID uuid.UUID) error
@@ -41,4 +42,6 @@ type OrdersRepository interface {
 
 type PaymentRepository interface {
 	CreatePayment(ctx context.Context, payment *domain.Payment) (*domain.Payment, error)
+	GetPayment(ctx context.Context, paymentID uuid.UUID) (*domain.Payment, error)
+	UpdatePayment(ctx context.Context, payment *domain.Payment) (*domain.Payment, error)
 }

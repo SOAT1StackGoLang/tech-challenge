@@ -2,9 +2,10 @@ create table public.lanchonete_payments
 (
     id         uuid           not null,
     created_at timestamptz    not null,
-    paid_at    timestamptz,
-    order_id   uuid           unique not null,
+    updated_at timestamptz,
+    order_id   uuid unique    not null,
     value      numeric(10, 2) not null,
+    status     varchar(20)    not null,
 
     constraint lanchonete_payments_pk
         PRIMARY KEY (id)

@@ -30,6 +30,7 @@ type CategoriesUseCase interface {
 
 type OrdersUseCase interface {
 	GetOrder(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error)
+	GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error)
 	CreateOrder(ctx context.Context, userID uuid.UUID, products []domain.Product) (*domain.Order, error)
 	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []domain.Product) (*domain.Order, error)
 	RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []domain.Product) (*domain.Order, error)
@@ -39,5 +40,7 @@ type OrdersUseCase interface {
 }
 
 type PaymentUseCase interface {
+	GetPayment(ctx context.Context, paymentID uuid.UUID) (*domain.Payment, error)
 	CreatePayment(ctx context.Context, orderID *domain.Order) (*domain.Payment, error)
+	UpdatePayment(ctx context.Context, paymentID uuid.UUID, status domain.PaymentStatus) (*domain.Payment, error)
 }

@@ -20,6 +20,10 @@ type ordersUseCase struct {
 	paymentsUC ports.PaymentUseCase
 }
 
+func (o *ordersUseCase) GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error) {
+	return o.ordersRepo.GetOrderByPaymentID(ctx, paymentID)
+}
+
 func (o *ordersUseCase) Checkout(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error) {
 	var order *domain.Order
 
@@ -58,7 +62,12 @@ func NewOrdersUseCase(
 	prodUC ports.ProductsUseCase,
 	paymentsUC ports.PaymentUseCase,
 ) ports.OrdersUseCase {
-	return &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC, paymentsUC: paymentsUC}
+	orderUC := &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC, paymentsUC: paymentsUC}
+
+	domain.PaymentStatusChannel = make(chan domain.PaymentStatusNotification)
+	go orderUC.SubscribeToPaymentStatusUpdates()
+
+	return orderUC
 }
 
 func (o *ordersUseCase) ListOrders(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error) {
@@ -181,4 +190,25 @@ func (o *ordersUseCase) DeleteOrder(ctx context.Context, userID, orderID uuid.UU
 	}
 
 	return o.ordersRepo.DeleteOrder(ctx, orderID)
+}
+
+func (o *ordersUseCase) SubscribeToPaymentStatusUpdates() {
+	for notification := range domain.PaymentStatusChannel {
+		order, err := o.GetOrderByPaymentID(context.Background(), notification.PaymentID)
+		if err != nil {
+			return
+		}
+
+		status := domain.OrderStatusFromNotification(notification.Status)
+		order.Status = status
+
+		_, err = o.ordersRepo.UpdateOrder(context.Background(), order)
+		if err != nil {
+			o.logger.Errorw(
+				"failed updating order",
+				zap.Error(err),
+			)
+		}
+		return
+	}
 }
