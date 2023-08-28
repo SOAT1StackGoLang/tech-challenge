@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: tech-challenge
+  name: tech-challenge
+  namespace: tech-challenge-testing
+spec:
+  #ingressClassName: kong # this is the ingress controller, change to nginx or traefik if you are using one of those
+  rules:
+  - host: tech-challenge.apps.loatecs.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: tech-challenge
+            port:
+              number: 8000
+        path: /
+        pathType: ImplementationSpecific # this will change depending on the ingress controller

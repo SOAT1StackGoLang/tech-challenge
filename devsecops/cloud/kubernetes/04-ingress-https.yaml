@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    konghq.com/https-redirect-status-code: "308"
+    konghq.com/preserve-host: "true"
+    konghq.com/protocols: https
+  labels:
+    app: tech-challenge
+  name: tech-challenge
+  namespace: tech-challenge-testing
+spec:
+  ingressClassName: kong
+  rules:
+  - host: tech-challenge.apps.loatecs.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: tech-challenge
+            port:
+              number: 8000
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - tech-challenge.apps.loatecs.com
+    secretName: tech-challenge-tls
