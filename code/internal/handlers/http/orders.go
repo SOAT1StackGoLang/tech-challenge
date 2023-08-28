@@ -25,8 +25,8 @@ type (
 	}
 
 	PaymentInfo struct {
-		ID    string `json:"payment_id"`
-		Value string `json:"value" description:"Valor a ser pago"`
+		PaymentID string `json:"payment_id"`
+		Value     string `json:"value" description:"Valor a ser pago"`
 	}
 
 	OrderStatus string
@@ -71,8 +71,8 @@ type (
 	}
 
 	OrderCheckoutRequest struct {
-		UserID string `json:"user_id"`
-		ID     string `json:"id" description:"ID do Pedido"`
+		UserID  string `json:"user_id"`
+		OrderID string `json:"order_id" description:"ID do Pedido"`
 	}
 )
 
@@ -277,7 +277,7 @@ func (oH *OrdersHttpHandler) handleCheckout(request *restful.Request, response *
 		return
 	}
 
-	id := helpers.SafeUUIDFromString(oC.ID)
+	id := helpers.SafeUUIDFromString(oC.OrderID)
 	order, err := oH.ordersUC.Checkout(oH.ctx, uid, id)
 	if err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
@@ -290,7 +290,7 @@ func (oH *OrdersHttpHandler) handleCheckout(request *restful.Request, response *
 
 	var outPayment PaymentInfo
 	outPayment.Value = outOrder.Price
-	outPayment.ID = outOrder.PaymentID
+	outPayment.PaymentID = outOrder.PaymentID
 
 	out.Order = outOrder
 	out.PaymentInfo = outPayment

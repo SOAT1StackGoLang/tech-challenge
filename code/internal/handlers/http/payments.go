@@ -19,9 +19,9 @@ type (
 	}
 
 	PaymentNotification struct {
-		ID       string `json:"id" description:"ID do pagamento"`
-		OrderID  string `json:"order_id" description:"ID do pedido a ser pago"`
-		Approved bool   `json:"approved" description:"True para aprovado false para recusado"`
+		PaymentID string `json:"payment_id" description:"ID do pagamento"`
+		OrderID   string `json:"order_id" description:"ID do pedido a ser pago"`
+		Approved  bool   `json:"approved" description:"True para aprovado false para recusado"`
 	}
 
 	PaymentStatus string
@@ -40,7 +40,7 @@ func (pN *PaymentNotification) toDomain() *domain.PaymentStatusNotification {
 	var pS PaymentStatus
 	pS = pS.fromRequest(pN.Approved)
 	return &domain.PaymentStatusNotification{
-		PaymentID: helpers.SafeUUIDFromString(pN.ID),
+		PaymentID: helpers.SafeUUIDFromString(pN.PaymentID),
 		OrderID:   helpers.SafeUUIDFromString(pN.OrderID),
 		Status:    pS.toDomain(),
 	}
