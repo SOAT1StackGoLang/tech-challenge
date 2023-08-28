@@ -1,0 +1,31 @@
+## using kubedb operator
+## https://kubedb.com/
+apiVersion: kubedb.com/v1alpha2
+kind: Postgres
+metadata:
+  name: tech-challange-testing
+  namespace: demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1" # this will will be the first to be deployed when using argocd
+spec:
+  version: "15.3"
+  replicas: 1
+  #standbyMode: Hot
+  storageType: Ephemeral
+  init:
+    script:
+      configMap:
+        name: tech-challange-testing-init-script
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: tech-challange-testing-init-script
+  namespace: demo
+data:
+  createdb.sql: |
+    CREATE DATABASE lanchonete;
+
+#kubectl get secrets -n demo tech-challange-testing-auth -o jsonpath='{.data.\username}' | base64 -d
+#echo ""
+#kubectl get secrets -n demo tech-challange-testing-auth -o jsonpath='{.data.\password}' | base64 -d
