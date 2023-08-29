@@ -99,6 +99,12 @@ func NewCategory(ID uuid.UUID, createdAt time.Time, name string) *Category {
 	return &Category{ID: ID, CreatedAt: createdAt, Name: name}
 }
 
+type CategoryList struct {
+	Categories    []*Category
+	Limit, Offset int
+	Total         int64
+}
+
 type Payment struct {
 	ID        uuid.UUID
 	CreatedAt time.Time

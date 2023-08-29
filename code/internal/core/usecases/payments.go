@@ -14,12 +14,12 @@ type paymentsUseCase struct {
 	paymentRepo ports.PaymentRepository
 }
 
-func (p *paymentsUseCase) GetPayment(ctx context.Context, paymentID uuid.UUID) (*domain.Payment, error) {
-	return p.paymentRepo.GetPayment(ctx, paymentID)
-}
-
 func NewPaymentsUseCase(logger *zap.SugaredLogger, repo ports.PaymentRepository) ports.PaymentUseCase {
 	return &paymentsUseCase{logger: logger, paymentRepo: repo}
+}
+
+func (p *paymentsUseCase) GetPayment(ctx context.Context, paymentID uuid.UUID) (*domain.Payment, error) {
+	return p.paymentRepo.GetPayment(ctx, paymentID)
 }
 
 func (p *paymentsUseCase) CreatePayment(ctx context.Context, order *domain.Order) (*domain.Payment, error) {

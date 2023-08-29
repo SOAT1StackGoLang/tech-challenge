@@ -19,6 +19,14 @@ func NewCategoriesUseCase(logger *zap.SugaredLogger, repo ports.CategoriesReposi
 	return &categoriesUseCase{log: logger, catRepo: repo, userUC: userUC}
 }
 
+func (c *categoriesUseCase) ListCategories(ctx context.Context, userID uuid.UUID, limit, offset int) (*domain.CategoryList, error) {
+	if !isAdmin(c.log, c.userUC, ctx, userID) {
+		return nil, helpers.ErrUnauthorized
+	}
+
+	return c.catRepo.ListCategories(ctx, limit, offset)
+}
+
 func (c *categoriesUseCase) GetCategory(ctx context.Context, id uuid.UUID) (*domain.Category, error) {
 	out, err := c.catRepo.GetCategoryByID(ctx, id)
 	return out, err

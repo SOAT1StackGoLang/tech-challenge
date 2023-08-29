@@ -5,11 +5,17 @@ import (
 	"time"
 )
 
-// QueryStruct is Multipurpose
+// Multipurpose
 type (
 	QueryStruct struct {
 		ID     string `json:"id" description:"id do objeto a ser removido/consultado"`
 		UserID string `json:"user_id" description:"id do usuário requerente"`
+	}
+
+	ListRequest struct {
+		UserID string `json:"user_id"`
+		Limit  int    `json:"limit" default:"10" description:"Quantidade de registros"`
+		Offset int    `json:"offset"`
 	}
 )
 
@@ -25,6 +31,13 @@ type (
 		CreatedAt time.Time `json:"created_at" description:"Epoch time em que categoria foi criada"`
 		UpdatedAt time.Time `json:"updated_at" description:"Epoch time em que categoria foi modificada"`
 		InsertionCategory
+	}
+
+	CategoriesList struct {
+		Categories []Category `json:"categories"`
+		Limit      int        `json:"limit" default:"10"`
+		Offset     int        `json:"offset"`
+		Total      int64      `json:"total"`
 	}
 )
 
@@ -73,12 +86,6 @@ type (
 		Limit  int     `json:"limit" default:"10"`
 		Offset int     `json:"offset"`
 		Total  int64   `json:"total"`
-	}
-
-	OrderListRequest struct {
-		UserID string `json:"user_id"`
-		Limit  int    `json:"limit" default:"10" description:"Quantidade de registros"`
-		Offset int    `json:"offset"`
 	}
 
 	OrderCheckoutRequest struct {

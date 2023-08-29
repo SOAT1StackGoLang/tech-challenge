@@ -16,6 +16,14 @@ type productsUseCase struct {
 	userUC      ports.UsersUseCase
 }
 
+func NewProductsUseCase(repository ports.ProductsRepository, userUseCase ports.UsersUseCase, logger *zap.SugaredLogger) ports.ProductsUseCase {
+	return &productsUseCase{
+		logger:      logger,
+		productRepo: repository,
+		userUC:      userUseCase,
+	}
+}
+
 // GetProductsPriceSum is to be used when displaying the total amount of an order
 func (p productsUseCase) GetProductsPriceSumByID(ctx context.Context, products []uuid.UUID) (*domain.ProductsSum, error) {
 	prodsSum, err := p.productRepo.GetProductsPriceSumByID(ctx, products)
@@ -23,14 +31,6 @@ func (p productsUseCase) GetProductsPriceSumByID(ctx context.Context, products [
 		return nil, err
 	}
 	return prodsSum, err
-}
-
-func NewProductsUseCase(repository ports.ProductsRepository, userUseCase ports.UsersUseCase, logger *zap.SugaredLogger) ports.ProductsUseCase {
-	return &productsUseCase{
-		logger:      logger,
-		productRepo: repository,
-		userUC:      userUseCase,
-	}
 }
 
 func (p productsUseCase) GetProduct(ctx context.Context, id uuid.UUID) (*domain.Product, error) {
