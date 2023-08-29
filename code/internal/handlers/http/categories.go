@@ -45,7 +45,7 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 		Returns(500, "Erro ao remover categoria", nil))
 
 	ws.Route(ws.POST("/categories/all").To(handler.handleListCategories).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
-		Doc("Lista categorias").
+		Doc("Listagem de categorias").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(ListRequest{}).
 		Returns(http.StatusOK, "sucesso", CategoriesList{}).
