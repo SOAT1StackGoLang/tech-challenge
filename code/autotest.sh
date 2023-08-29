@@ -252,7 +252,7 @@ echo -e "${GREEN} Item 1 da entrega ${NC}"
 CHECKOUT=$(curl -s --location --request POST 'http://localhost:8000/v1/orders/checkout' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "id": "'$ORDER_ID'",
+    "order_id": "'$ORDER_ID'",
     "user_id": "123e4567-e89b-12d3-a456-426614174000"
 }')
 echo -e "$CHECKOUT" | jq
@@ -269,7 +269,7 @@ PAYMENT=$(curl -s --location --request POST 'http://localhost:8000/v1/webhook/pa
 --header 'Content-Type: application/json' \
 --data-raw '{
     "approved": true,
-    "id": "'$PAYMENT_ID'",
+    "payment_id": "'$PAYMENT_ID'",
     "order_id": "'$ORDER_ID'"
 }')
 echo -e "$PAYMENT" | jq

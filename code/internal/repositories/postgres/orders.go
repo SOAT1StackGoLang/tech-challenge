@@ -90,7 +90,7 @@ func (o *ordersRepositoryImpl) ListOrders(ctx context.Context, limit, offset int
 	if err = o.db.WithContext(ctx).Table(ordersTable).
 		Limit(limit).
 		Offset(offset).
-		Order("status ASC").
+		Order("status DESC").
 		Where("status > ? AND status < ? ", ORDER_STATUS_WAITING_PAYMENT, ORDER_STATUS_FINISHED).
 		Scan(&saveOrders).Error; err != nil {
 		o.log.Errorw(
