@@ -14,7 +14,7 @@ func main() {
 //	// Set Gin to production mode
 //	gin.SetMode(gin.ReleaseMode)
 //
-//	// Create a new Gin router
+//	// handleCreate a new Gin router
 //	router := gin.New()
 //
 //	// Add middleware to log requests and recover from panics
