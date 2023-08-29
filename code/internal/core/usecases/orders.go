@@ -20,6 +20,25 @@ type ordersUseCase struct {
 	paymentsUC ports.PaymentUseCase
 }
 
+func NewOrdersUseCase(
+	logger *zap.SugaredLogger,
+	ordersRepo ports.OrdersRepository,
+	userUC ports.UsersUseCase,
+	prodUC ports.ProductsUseCase,
+	paymentsUC ports.PaymentUseCase,
+) ports.OrdersUseCase {
+	orderUC := &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC, paymentsUC: paymentsUC}
+
+	domain.PaymentStatusChannel = make(chan domain.PaymentStatusNotification)
+	go orderUC.SubscribeToPaymentStatusUpdates()
+
+	return orderUC
+}
+
+func (o *ordersUseCase) GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error) {
+	return o.ordersRepo.GetOrderByPaymentID(ctx, paymentID)
+}
+
 func (o *ordersUseCase) UpdateOrderStatus(ctx context.Context, userID, orderID uuid.UUID, status domain.OrderStatus) (*domain.Order, error) {
 	order, err := o.GetOrder(ctx, userID, orderID)
 	if err != nil {
@@ -30,10 +49,6 @@ func (o *ordersUseCase) UpdateOrderStatus(ctx context.Context, userID, orderID u
 	order.UpdatedAt = time.Now()
 
 	return o.ordersRepo.UpdateOrder(ctx, order)
-}
-
-func (o *ordersUseCase) GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error) {
-	return o.ordersRepo.GetOrderByPaymentID(ctx, paymentID)
 }
 
 func (o *ordersUseCase) Checkout(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error) {
@@ -65,21 +80,6 @@ func (o *ordersUseCase) Checkout(ctx context.Context, userID, orderID uuid.UUID)
 
 	return order, err
 
-}
-
-func NewOrdersUseCase(
-	logger *zap.SugaredLogger,
-	ordersRepo ports.OrdersRepository,
-	userUC ports.UsersUseCase,
-	prodUC ports.ProductsUseCase,
-	paymentsUC ports.PaymentUseCase,
-) ports.OrdersUseCase {
-	orderUC := &ordersUseCase{logger: logger, ordersRepo: ordersRepo, userUC: userUC, prodUC: prodUC, paymentsUC: paymentsUC}
-
-	domain.PaymentStatusChannel = make(chan domain.PaymentStatusNotification)
-	go orderUC.SubscribeToPaymentStatusUpdates()
-
-	return orderUC
 }
 
 func (o *ordersUseCase) ListOrders(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error) {

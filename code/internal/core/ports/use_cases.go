@@ -26,6 +26,7 @@ type CategoriesUseCase interface {
 	GetCategory(ctx context.Context, id uuid.UUID) (*domain.Category, error)
 	InsertCategory(ctx context.Context, userID uuid.UUID, in *domain.Category) (*domain.Category, error)
 	DeleteCategory(ctx context.Context, userID, id uuid.UUID) error
+	ListCategories(ctx context.Context, userID uuid.UUID, limit, offset int) (*domain.CategoryList, error)
 }
 
 type OrdersUseCase interface {

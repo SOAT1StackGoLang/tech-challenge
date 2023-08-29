@@ -27,6 +27,7 @@ type CategoriesRepository interface {
 	InsertCategory(ctx context.Context, in *domain.Category) (*domain.Category, error)
 	GetCategoryByID(ctx context.Context, id uuid.UUID) (*domain.Category, error)
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
+	ListCategories(ctx context.Context, limit int, offset int) (*domain.CategoryList, error)
 }
 
 type OrdersRepository interface {

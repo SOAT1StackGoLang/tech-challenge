@@ -16,6 +16,45 @@ type categoriesRepositoryImpl struct {
 	db  *gorm.DB
 }
 
+func NewPgxCategoriesRepository(db *gorm.DB, logger *zap.SugaredLogger) ports.CategoriesRepository {
+	return &categoriesRepositoryImpl{
+		log: logger,
+		db:  db,
+	}
+}
+
+func (c categoriesRepositoryImpl) ListCategories(ctx context.Context, limit int, offset int) (*domain.CategoryList, error) {
+	var total int64
+	var savedCats []Category
+
+	var err error
+	if err = c.db.WithContext(ctx).Table(categoriesTable).
+		Limit(limit).
+		Offset(offset).
+		Count(&total).
+		Scan(&savedCats).Error; err != nil {
+		c.log.Errorw(
+			"failed listing categories",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	out := &domain.CategoryList{}
+	outList := make([]*domain.Category, 0, total)
+
+	for _, c := range savedCats {
+		outList = append(outList, c.toDomain())
+	}
+
+	out.Categories = outList
+	out.Total = total
+	out.Limit = limit
+	out.Offset = offset
+
+	return out, err
+}
+
 func (c categoriesRepositoryImpl) InsertCategory(ctx context.Context, in *domain.Category) (*domain.Category, error) {
 	cat := Category{}
 	cat.fromDomain(in)
@@ -61,11 +100,4 @@ func (c categoriesRepositoryImpl) DeleteCategory(ctx context.Context, id uuid.UU
 	}
 
 	return nil
-}
-
-func NewPgxCategoriesRepository(db *gorm.DB, logger *zap.SugaredLogger) ports.CategoriesRepository {
-	return &categoriesRepositoryImpl{
-		log: logger,
-		db:  db,
-	}
 }

@@ -184,19 +184,19 @@ func (oH *OrdersHttpHandler) handleCheckout(request *restful.Request, response *
 }
 
 func (oH *OrdersHttpHandler) handleListOrders(request *restful.Request, response *restful.Response) {
-	var oLR OrderListRequest
-	if err := request.ReadEntity(&oLR); err != nil {
+	var lR ListRequest
+	if err := request.ReadEntity(&lR); err != nil {
 		_ = response.WriteError(http.StatusBadRequest, err)
 		return
 	}
 
-	uid, err := uuid.Parse(oLR.UserID)
+	uid, err := uuid.Parse(lR.UserID)
 	if err != nil {
 		_ = response.WriteError(http.StatusBadRequest, err)
 		return
 	}
 
-	list, err := oH.ordersUC.ListOrders(oH.ctx, oLR.Limit, oLR.Offset, uid)
+	list, err := oH.ordersUC.ListOrders(oH.ctx, lR.Limit, lR.Offset, uid)
 	if err != nil {
 		_ = response.WriteError(http.StatusInternalServerError, err)
 		return
@@ -232,7 +232,7 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 	ws.Route(ws.POST("/orders/all").To(handler.handleListOrders).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Lista pedidos").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(OrderListRequest{}).
+		Reads(ListRequest{}).
 		Returns(http.StatusOK, "sucesso", OrderList{}).
 		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
 	ws.Route(ws.POST("/orders").To(handler.handleCreateOrder).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).

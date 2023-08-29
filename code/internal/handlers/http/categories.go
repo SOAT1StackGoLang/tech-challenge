@@ -43,6 +43,13 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 		Reads(QueryStruct{}). // from the request
 		Returns(200, "Categoria removida", nil).
 		Returns(500, "Erro ao remover categoria", nil))
+
+	ws.Route(ws.POST("/categories/all").To(handler.handleListCategories).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Lista categories").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(ListRequest{}).
+		Returns(http.StatusOK, "sucesso", CategoriesList{}).
+		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
 	return handler
 }
 
@@ -114,4 +121,33 @@ func (cH *CategoriesHttpHandler) handleDeleteCategory(request *restful.Request, 
 	}
 
 	response.WriteHeader(http.StatusOK)
+}
+
+func (cH *CategoriesHttpHandler) handleListCategories(request *restful.Request, response *restful.Response) {
+	var lR ListRequest
+	if err := request.ReadEntity(&lR); err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	uid, err := uuid.Parse(lR.UserID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+
+	list, err := cH.categoriesUseCase.ListCategories(cH.ctx, uid, lR.Limit, lR.Offset)
+
+	var cL CategoriesList
+	var cat Category
+
+	for _, c := range list.Categories {
+		cat.fromDomain(c)
+		cL.Categories = append(cL.Categories, cat)
+	}
+	cL.Total = list.Total
+	cL.Limit = list.Limit
+	cL.Offset = list.Offset
+
+	_ = response.WriteAsJson(cL)
 }
