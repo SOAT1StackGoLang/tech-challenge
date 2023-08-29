@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -74,6 +75,12 @@ type (
 		UserID  string `json:"user_id"`
 		OrderID string `json:"order_id" description:"ID do Pedido"`
 	}
+
+	OrderStatusUpdate struct {
+		OrderID string `json:"order_id" description:"Código de identificação do pedido"`
+		UserID  string `json:"user_id" description:"Código de descrição do usuário requerente"`
+		Status  string `json:"status" description:"Status para qual deseja mudar o pedido" enum:"Recebido|Preparacao|Pronto|Finalizado|Cancelado"`
+	}
 )
 
 func (o *Order) fromDomain(order *domain.Order) {
@@ -122,7 +129,7 @@ const (
 	ORDER_STATUS_OPEN                        = "Aberto"
 	ORDER_STATUS_WAITING_PAYMENT             = "Aguardando Pagamento"
 	ORDER_STATUS_RECEIVED                    = "Recebido"
-	ORDER_STATUS_PREPARING                   = "Em Preparação"
+	ORDER_STATUS_PREPARING                   = "Preparacao"
 	ORDER_STATUS_DONE                        = "Pronto"
 	ORDER_STATUS_FINISHED                    = "Finalizado"
 	ORDER_STATUS_CANCELED                    = "Cancelado"
@@ -146,6 +153,20 @@ func (oS *OrderStatus) fromDomain(status domain.OrderStatus) OrderStatus {
 		return ORDER_STATUS_FINISHED
 	}
 	return ORDER_STATUS_CANCELED
+}
+
+func stringToDomainStatus(status string) domain.OrderStatus {
+	switch status {
+	case ORDER_STATUS_RECEIVED:
+		return domain.ORDER_STATUS_RECEIVED
+	case ORDER_STATUS_PREPARING:
+		return domain.ORDER_STATUS_PREPARING
+	case ORDER_STATUS_DONE:
+		return domain.ORDER_STATUS_DONE
+	case ORDER_STATUS_FINISHED:
+		return domain.ORDER_STATUS_FINISHED
+	}
+	return domain.ORDER_STATUS_UNSET
 }
 
 func (oH *OrdersHttpHandler) handleGetOrder(request *restful.Request, response *restful.Response) {
@@ -221,6 +242,32 @@ func (oH *OrdersHttpHandler) handleAddProductsIntoOrder(request *restful.Request
 
 	var out Order
 	out.fromDomain(order)
+	_ = response.WriteAsJson(out)
+}
+
+func (oH *OrdersHttpHandler) handleStatusUpdate(request *restful.Request, response *restful.Response) {
+	var req OrderStatusUpdate
+	if err := request.ReadEntity(&req); err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
+	}
+	oID := helpers.SafeUUIDFromString(req.OrderID)
+	uID := helpers.SafeUUIDFromString(req.UserID)
+
+	dS := stringToDomainStatus(req.Status)
+	if dS == domain.ORDER_STATUS_UNSET {
+		_ = response.WriteError(http.StatusBadRequest, errors.New("bad request: invalid status input"))
+		return
+	}
+
+	resp, err := oH.ordersUC.UpdateOrderStatus(oH.ctx, uID, oID, dS)
+	if err != nil {
+		_ = response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var out Order
+	out.fromDomain(resp)
 	_ = response.WriteAsJson(out)
 }
 
@@ -379,5 +426,9 @@ func NewOrdersHttpHandler(ctx context.Context, ordersUC ports.OrdersUseCase, ws 
 		Reads(OrderCheckoutRequest{}).
 		Returns(http.StatusOK, "sucesso", Checkout{}).
 		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
+	ws.Route(ws.PUT("/orders/status-update").To(handler.handleStatusUpdate).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Atualização de status por parte do lojista").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(OrderStatusUpdate{}))
 	return handler
 }

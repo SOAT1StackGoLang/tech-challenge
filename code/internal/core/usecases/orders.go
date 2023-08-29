@@ -20,6 +20,18 @@ type ordersUseCase struct {
 	paymentsUC ports.PaymentUseCase
 }
 
+func (o *ordersUseCase) UpdateOrderStatus(ctx context.Context, userID, orderID uuid.UUID, status domain.OrderStatus) (*domain.Order, error) {
+	order, err := o.GetOrder(ctx, userID, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	order.Status = status
+	order.UpdatedAt = time.Now()
+
+	return o.ordersRepo.UpdateOrder(ctx, order)
+}
+
 func (o *ordersUseCase) GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error) {
 	return o.ordersRepo.GetOrderByPaymentID(ctx, paymentID)
 }
