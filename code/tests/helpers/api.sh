@@ -155,3 +155,14 @@ function move_order_to_next_status() {
     echo "$status_update"
 }
 
+## this function will list all orders /v1/orders/all
+## will receive the user_id as optional parameter
+## will return the response body
+
+function list_all_orders() {
+    local user_id=${1:-$USER_ID}
+    #echo -e "${YELLOW}Listing all orders${NC}"
+    payload="{\"limit\": 10, \"offset\": 0, \"user_id\": \"$user_id\"}"
+    orders=$(make_request "POST" "/v1/orders/all" "$payload")
+    echo "$orders" | jq -r '.orders'
+}

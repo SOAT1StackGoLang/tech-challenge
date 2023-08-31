@@ -6,15 +6,15 @@ source ./helpers/api.sh
 ## this Script will run the tests for the fase 2 of the challenge
 ## the following steps will be executed:
 ## 1. check if the api is working
-## 2. create 6 orders to validate the status: Recebido|Preparacao|Pronto|Finalizado|Cancelado
+## 2. create 6 orders to validate the status: Recebido|Preparacao|Pronto|Finalizado
 ## 3. will pay 5 orders
-## 4. will refuse the last(6) order and move to Cancelado status
-## 5. will change the status of the order 2 to "Preparacao"
-## 6. will change the status of the order 3 to "Pronto"
-## 7. will change the status of the order 4 to "Finalizado"
-## 8. will change the status of the order 5 to "Preparacao"
-## 9. will change the status of the order 5 to "Pronto"
-## 10. will change the status of the order 5 to "Finalizado"    
+## 4. will change the status of the order 2 to "Recebido"
+## 5. will change the status of the order 3 to "Preparacao"
+## 6. will change the status of the order 4 to "Pronto"
+## 7. will change the status of the order 5 to "Finalizado"
+## 8. will change the status of the order 6 to "Preparacao"
+## 9. will change the status of the order 6 to "Pronto"
+## 10. will change the status of the order 6 to "Finalizado"    
 ## 11. will list all orders and filter to show only ID, status, payment_status, as a result of success
 
 ## this function will run all the tests for the challange fase 2
@@ -48,7 +48,44 @@ function run_tests_fase_2() {
         #sleep 2
     done
 
+    # Change status of order 2 to "Preparacao"
+    #echo -e "\n-----"
+    #echo -e "${YELLOW}Changing status of order 2 to \"Preparacao\" - FASE 2${NC}"
+    order_id_1=$(echo "$oders_id_with_payment_id" | jq -r '.[0].order_id')
+    move_order_to_next_status "$order_id_1" "Recebido" | jq
+    sleep 2
+    order_id_2=$(echo "$oders_id_with_payment_id" | jq -r '.[1].order_id')
+    move_order_to_next_status "$order_id_2" "Preparacao" | jq
+    sleep 2
+    order_id_3=$(echo "$oders_id_with_payment_id" | jq -r '.[2].order_id')
+    move_order_to_next_status "$order_id_3" "Pronto" | jq
+    sleep 2
+    order_id_4=$(echo "$oders_id_with_payment_id" | jq -r '.[3].order_id')
+    move_order_to_next_status "$order_id_4" "Finalizado" | jq
+    sleep 2
+    echo -e "\n-----"
+    echo -e "${YELLOW}Listing all Orders - FASE 2${NC}"
+    list_all_orders | jq -r '.[] | {id: .id, status: .status}'
+    order_id_5=$(echo "$oders_id_with_payment_id" | jq -r '.[4].order_id')
+    move_order_to_next_status "$order_id_5" "Preparacao" | jq
+    echo -e "\n-----"
+    echo -e "${YELLOW}Listing all Orders - FASE 2${NC}"
+    list_all_orders | jq -r '.[] | {id: .id, status: .status}'
+    sleep 2
+    order_id_5=$(echo "$oders_id_with_payment_id" | jq -r '.[4].order_id')
+    move_order_to_next_status "$order_id_5" "Pronto" | jq
+    echo -e "\n-----"
+    echo -e "${YELLOW}Listing all Orders - FASE 2${NC}"
+    list_all_orders | jq -r '.[] | {id: .id, status: .status}'
+    sleep 2
+    order_id_5=$(echo "$oders_id_with_payment_id" | jq -r '.[4].order_id')
+    move_order_to_next_status "$order_id_5" "Finalizado" | jq
+    sleep 2
 
+    # List all orders
+    echo -e "\n-----"
+    echo -e "${YELLOW}Listing all Orders - FASE 2${NC}"
+    list_all_orders | jq -r '.[] | {id: .id, status: .status}'
 }
 
 
