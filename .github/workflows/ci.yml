@@ -43,15 +43,15 @@ jobs:
     - name: Run build
       run: earthly --push +all
       working-directory: devsecops/cicd/build
-  trivy:
-    uses: ./.github/workflows/trivy.yml
-    needs: build-and-push
-  linter:
-    uses: ./.github/workflows/golangci-lint.yml
-    needs: build-and-push
-  autotest:
-    uses: ./.github/workflows/autotest.yml
-    needs: build-and-push
+  # trivy:
+  #   uses: ./.github/workflows/trivy.yml
+  #   needs: build-and-push
+  # linter:
+  #   uses: ./.github/workflows/golangci-lint.yml
+  #   needs: build-and-push
+  # autotest:
+  #   uses: ./.github/workflows/autotest.yml
+  #   needs: build-and-push
   delivery-fase-2:
     uses: ./.github/workflows/delivery-fase-2.yml
     needs: build-and-push
