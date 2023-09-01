@@ -51,6 +51,10 @@ jobs:
   autotest:
     uses: ./.github/workflows/autotest.yml
     needs: build-and-push
+  delivery-fase-2:
+    uses: ./.github/workflows/delivery-fase-2.yml
+    needs: build-and-push
+  
   # snyk:
   #   uses: ./.github/workflows/snyk-security.yml
   #   needs: build-and-push
