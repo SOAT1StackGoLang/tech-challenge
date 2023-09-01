@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -euo pipefail
 ## import the api.sh file
 source ./helpers/api.sh
 

@@ -10,14 +10,14 @@ permissions:
 
 jobs:
   delivery-fase-2:
-    name: Run delivery-fase-2
+    name: Runbook fase 2
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Pull and the tests
+      - name: Build and Start Containers
         #if: github.event_name == 'workflow_dispatch'
         run: cd code && ./run.sh recreate-all
-      - name: Execute run_fase_2
+      - name: Execute fase 2 tests
         #if: github.event_name == 'workflow_dispatch'
         run: cd code/tests && source fase-2.sh && run_fase_2
       - name: Skip if not trigged manually
