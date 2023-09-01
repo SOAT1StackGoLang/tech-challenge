@@ -2,11 +2,12 @@ package usecases
 
 import (
 	"context"
+	"time"
+
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"time"
 )
 
 type paymentsUseCase struct {
@@ -56,6 +57,13 @@ func (p *paymentsUseCase) UpdatePayment(ctx context.Context, paymentID uuid.UUID
 	return updated, err
 }
 
-func (p *paymentsUseCase) PublishPaymentStatus(notification domain.PaymentStatusNotification) {
-	domain.PaymentStatusChannel <- notification
+func (p *paymentsUseCase) PublishPaymentStatus(notification domain.PaymentStatusNotification) chan bool {
+	done := make(chan bool)
+
+	go func() {
+		domain.PaymentStatusChannel <- notification
+		done <- true
+	}()
+
+	return done
 }
