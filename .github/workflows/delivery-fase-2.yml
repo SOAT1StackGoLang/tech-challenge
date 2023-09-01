@@ -1,6 +1,7 @@
 name: delivery-fase-2
 on:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -14,6 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Pull and the tests
+        if: github.event_name == 'workflow_dispatch'
         run: cd code && ./run.sh recreate-all
       - name: Execute run_fase_2
+        if: github.event_name == 'workflow_dispatch'
         run: cd code/tests && source fase-2.sh && run_fase_2
+      - name: Skip if not trigged manually
+        if: github.event_name != 'workflow_dispatch'
+        run: echo "Skipping fase-2"
