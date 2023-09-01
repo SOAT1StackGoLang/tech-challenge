@@ -1,0 +1,19 @@
+name: delivery-fase-2
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  # pull-requests: read
+
+jobs:
+  delivery-fase-2:
+    name: Run delivery-fase-2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Pull and the tests
+        run: cd code && ./run.sh recreate-all
+      - name: Execute run_fase_2
+        run: cd code/tests && source fase-2.sh && run_fase_2
