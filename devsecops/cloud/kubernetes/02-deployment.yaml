@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tech-challenge
+  namespace: tech-challenge-testing
+  labels:
+    app: tech-challenge
+spec:
+  selector:
+    matchLabels:
+      app: tech-challenge
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: tech-challenge
+    spec:
+      initContainers:
+        - name: init
+          image: ghcr.io/soat1stackgolang/tech-challenge:migs-develop
+          imagePullPolicy: Always
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10000
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 25Mi
+            limits:
+              cpu: 100m
+              memory: 100Mi
+          env:
+            - name: PORT
+              value: "8000"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_PORT
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_NAME
+      containers:
+        - name: tech-challenge
+          image: ghcr.io/soat1stackgolang/tech-challenge:main-develop
+          imagePullPolicy: Always
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10000
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 25Mi
+            limits:
+              cpu: 100m
+              memory: 100Mi
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 3
+            periodSeconds: 10
+          env:
+            - name: PORT
+              value: "8000"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_PORT
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: tech-challange-testing-auth-demo
+                  key: DB_NAME
+          ports:
+            - containerPort: 8000
+              name: web
+          
+      restartPolicy: Always

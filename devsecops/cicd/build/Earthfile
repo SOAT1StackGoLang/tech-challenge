@@ -1,11 +1,16 @@
 VERSION 0.7
 all:
-    BUILD --platform=linux/amd64 --platform=linux/arm64 +docker
+    BUILD --platform=linux/amd64 --platform=linux/arm64 +migrations
+    BUILD --platform=linux/amd64 --platform=linux/arm64 +main
+    BUILD --platform=linux/amd64 --platform=linux/arm64 +debug
 amd64:
-    BUILD --platform=linux/amd64 +docker
+    BUILD --platform=linux/amd64 +migrations
+    BUILD --platform=linux/amd64 +main
+    BUILD --platform=linux/amd64 +debug
 arm64:
-    BUILD --platform=linux/arm64 +docker
-
+    BUILD --platform=linux/arm64 +migrations
+    BUILD --platform=linux/arm64 +main
+    BUILD --platform=linux/arm64 +debug
 file:
     LOCALLY
     SAVE ARTIFACT ../../../code
@@ -38,7 +43,51 @@ compile:
     SAVE ARTIFACT compile/migs /migs AS LOCAL compile/migs
 #--ldflags "-X 'main.Version=v0.0.3' -X 'main.BuildTime=$(date "+%H:%M:%S--%d/%m/%Y")' -X 'main.GitCommit=$(git rev-parse --short HEAD)'" \
 
-docker:
+migrations:
+    ARG EARTHLY_TARGET_TAG_DOCKER
+    ARG EARTHLY_GIT_SHORT_HASH
+    ARG TARGETPLATFORM
+    ARG TARGETARCH
+    ARG TARGETVARIANT
+    FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
+    ## enable multiple debug version with shell
+    #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
+    #FROM --platform=$TARGETPLATFORM alpine:latest
+    LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
+    LABEL org.opencontainers.image.description="Migrations Image only have the migrations binary and nothing else"
+    WORKDIR /
+    COPY \
+        --platform=linux/amd64 \
+        (+compile/migs --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /migs
+    ENV GIN_MODE=release
+    ENTRYPOINT ["/migs"]
+    EXPOSE 8000
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:migs-$EARTHLY_TARGET_TAG_DOCKER
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:migs-$EARTHLY_GIT_SHORT_HASH
+
+main:
+    ARG EARTHLY_TARGET_TAG_DOCKER
+    ARG EARTHLY_GIT_SHORT_HASH
+    ARG TARGETPLATFORM
+    ARG TARGETARCH
+    ARG TARGETVARIANT
+    FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
+    ## enable multiple debug version with shell
+    #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
+    #FROM --platform=$TARGETPLATFORM alpine:latest
+    LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
+    LABEL org.opencontainers.image.description="Main App Image only have the app binary and nothing else"
+    WORKDIR /
+    COPY \
+        --platform=linux/amd64 \
+        (+compile/app --GOARCH=$TARGETARCH --VARIANT=$TARGETVARIANT) /app
+    ENV GIN_MODE=release
+    ENTRYPOINT ["/app"]
+    EXPOSE 8000
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:main-$EARTHLY_TARGET_TAG_DOCKER
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:main-$EARTHLY_GIT_SHORT_HASH
+
+debug:
     ARG EARTHLY_TARGET_TAG_DOCKER
     ARG EARTHLY_GIT_SHORT_HASH
     ARG TARGETPLATFORM
@@ -49,6 +98,7 @@ docker:
     #FROM --platform=$TARGETPLATFORM gcr.io/distroless/static:debug
     FROM --platform=$TARGETPLATFORM alpine:latest
     LABEL org.opencontainers.image.source=https://github.com/soat1stackgolang/tech-challenge
+    LABEL org.opencontainers.image.description="Debug Image will have all binaries"
     WORKDIR /
     COPY \
         --platform=linux/amd64 \
@@ -59,5 +109,5 @@ docker:
     ENV GIN_MODE=release
     CMD /migs; /app
     EXPOSE 8000
-    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_TARGET_TAG_DOCKER
-    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:$EARTHLY_GIT_SHORT_HASH
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:debug-$EARTHLY_TARGET_TAG_DOCKER
+    SAVE IMAGE --push ghcr.io/soat1stackgolang/tech-challenge:debug-$EARTHLY_GIT_SHORT_HASH

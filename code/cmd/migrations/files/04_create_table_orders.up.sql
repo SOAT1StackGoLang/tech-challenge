@@ -7,7 +7,7 @@ create table public.lanchonete_orders
     user_id    uuid           not null,
     products   json           not null,
     price      numeric(10, 2) not null,
-    status     varchar(20)    not null,
+    status     int default 0  not null,
     payment_id uuid,
 
     constraint lanchonete_orders_pk

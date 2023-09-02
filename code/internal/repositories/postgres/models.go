@@ -46,6 +46,32 @@ type Product struct {
 	Price       decimal.Decimal `json:"price"`
 }
 
+type OrderProduct struct {
+	ID          uuid.UUID       `gorm:"id,primaryKey" json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	CategoryID  uuid.UUID       `json:"category_id"`
+	Price       decimal.Decimal `json:"price"`
+}
+
+func (oP *OrderProduct) toDomain() *domain.Product {
+	return &domain.Product{
+		ID:          oP.ID,
+		Name:        oP.Name,
+		Description: oP.Description,
+		CategoryID:  oP.CategoryID,
+		Price:       oP.Price,
+	}
+}
+
+func (oP *OrderProduct) fromDomain(dP *domain.Product) {
+	oP.ID = dP.ID
+	oP.Name = dP.Name
+	oP.Description = dP.Description
+	oP.CategoryID = dP.CategoryID
+	oP.Price = dP.Price
+}
+
 func (p *Product) toDomain() *domain.Product {
 	return &domain.Product{
 		ID:          p.ID,
@@ -116,29 +142,34 @@ type Order struct {
 	UpdatedAt sql.NullTime
 	DeletedAt sql.NullTime
 	Price     decimal.Decimal
-	Status    string
+	Status    OrderStatus
 	Products  json.RawMessage `json:"products" gorm:"type:jsonb"`
 }
 
 func (o *Order) fromDomain(order *domain.Order) {
 	if o == nil {
-		o = &Order{}
+		panic("order is nil")
 	}
 	o.ID = order.ID
 	o.UserID = order.UserID
 	o.PaymentID = order.PaymentID
 	o.CreatedAt = order.CreatedAt
-	o.Status = order.Status
 	o.Price = order.Price
 
-	// Convert ProductsIDs slice of uuid.UUID to a JSON array
-	productsJSON, err := json.Marshal(order.ProductsIDs)
-	if err != nil {
-		// Handle error
+	var products []OrderProduct
+	for _, p := range order.Products {
+		oP := OrderProduct{}
+		oP.fromDomain(&p)
+		products = append(products, oP)
 	}
 
-	// Create a new json.RawMessage object from the JSON-encoded byte slice
-	o.Products = json.RawMessage(productsJSON)
+	productsJSON, err := json.Marshal(products)
+	if err != nil {
+		//TODO handle properly
+		panic("failed to marshal products")
+	}
+
+	o.Products = productsJSON
 
 	if !order.UpdatedAt.IsZero() {
 		o.UpdatedAt = sql.NullTime{
@@ -152,10 +183,38 @@ func (o *Order) fromDomain(order *domain.Order) {
 			Valid: true,
 		}
 	}
+
+	var oS OrderStatus
+	o.Status = oS.fromDomain(order.Status)
 }
 
 func (o *Order) toDomain() *domain.Order {
-	// Unmarshal the JSON-encoded byte slice to a slice of strings
+	var products []Product
+	err := json.Unmarshal(o.Products, &products)
+	if err != nil {
+		// TODO handle properly
+		panic("failed to unmarshal products")
+	}
+
+	var outProducts []domain.Product
+	for _, v := range products {
+		outProducts = append(outProducts, *v.toDomain())
+	}
+
+	return &domain.Order{
+		ID:        o.ID,
+		UserID:    o.UserID,
+		PaymentID: o.PaymentID,
+		CreatedAt: o.CreatedAt,
+		UpdatedAt: o.UpdatedAt.Time,
+		DeletedAt: o.DeletedAt.Time,
+		Status:    o.Status.toDomain(),
+		Price:     o.Price,
+		Products:  outProducts,
+	}
+}
+
+func (o *Order) extractProductsIDsFromJSON() []uuid.UUID {
 	var products []string
 	err := json.Unmarshal(o.Products, &products)
 	if err != nil {
@@ -171,49 +230,129 @@ func (o *Order) toDomain() *domain.Order {
 		}
 	}
 
-	return &domain.Order{
-		ID:          o.ID,
-		UserID:      o.UserID,
-		PaymentID:   o.PaymentID,
-		CreatedAt:   o.CreatedAt,
-		UpdatedAt:   o.UpdatedAt.Time,
-		DeletedAt:   o.DeletedAt.Time,
-		Status:      o.Status,
-		Price:       o.Price,
-		ProductsIDs: productIDs,
+	return productIDs
+}
+
+type OrderStatus int
+
+const (
+	ORDER_STATUS_UNSET OrderStatus = iota
+	ORDER_STATUS_OPEN
+	ORDER_STATUS_WAITING_PAYMENT
+	ORDER_STATUS_RECEIVED
+	ORDER_STATUS_PREPARING
+	ORDER_STATUS_DONE
+	ORDER_STATUS_FINISHED
+	ORDER_STATUS_CANCELED
+)
+
+func (oS OrderStatus) toDomain() domain.OrderStatus {
+	switch oS {
+	case ORDER_STATUS_OPEN:
+		return domain.ORDER_STATUS_OPEN
+	case ORDER_STATUS_WAITING_PAYMENT:
+		return domain.ORDER_STATUS_WAITING_PAYMENT
+	case ORDER_STATUS_RECEIVED:
+		return domain.ORDER_STATUS_RECEIVED
+	case ORDER_STATUS_PREPARING:
+		return domain.ORDER_STATUS_PREPARING
+	case ORDER_STATUS_DONE:
+		return domain.ORDER_STATUS_DONE
+	case ORDER_STATUS_FINISHED:
+		return domain.ORDER_STATUS_FINISHED
+	case ORDER_STATUS_CANCELED:
+		return domain.ORDER_STATUS_CANCELED
 	}
+	return domain.ORDER_STATUS_UNSET
+}
+
+func (oS OrderStatus) fromDomain(status domain.OrderStatus) OrderStatus {
+	switch status {
+	case domain.ORDER_STATUS_OPEN:
+		return ORDER_STATUS_OPEN
+	case domain.ORDER_STATUS_WAITING_PAYMENT:
+		return ORDER_STATUS_WAITING_PAYMENT
+	case domain.ORDER_STATUS_RECEIVED:
+		return ORDER_STATUS_RECEIVED
+	case domain.ORDER_STATUS_PREPARING:
+		return ORDER_STATUS_PREPARING
+	case domain.ORDER_STATUS_DONE:
+		return ORDER_STATUS_DONE
+	case domain.ORDER_STATUS_FINISHED:
+		return ORDER_STATUS_FINISHED
+	case domain.ORDER_STATUS_CANCELED:
+		return ORDER_STATUS_CANCELED
+	}
+	return ORDER_STATUS_UNSET
 }
 
 type Payment struct {
 	ID        uuid.UUID `gorm:"id,primaryKey"`
 	CreatedAt time.Time
+	UpdatedAt sql.NullTime
+	Value     decimal.Decimal `json:"value"`
 	OrderID   uuid.UUID
-	UserID    uuid.UUID
+	Status    PaymentStatus
+}
+
+type PaymentStatus string
+
+const (
+	PAYMENT_SATUS_OPEN      PaymentStatus = "Aberto"
+	PAYMENT_STATUS_APPROVED               = "Aprovado"
+	PAYMENT_STATUS_REFUSED                = "Recusado"
+)
+
+func (pS PaymentStatus) toDomain() domain.PaymentStatus {
+	switch pS {
+	case PAYMENT_SATUS_OPEN:
+		return domain.PAYMENT_STATUS_OPEN
+	case PAYMENT_STATUS_APPROVED:
+		return domain.PAYMENT_STATUS_APPROVED
+	}
+	return domain.PAYMENT_SATUS_REFUSED
+}
+
+func (pS PaymentStatus) fromDomain(in domain.PaymentStatus) PaymentStatus {
+	switch in {
+	case domain.PAYMENT_STATUS_APPROVED:
+		return PAYMENT_STATUS_APPROVED
+	case domain.PAYMENT_SATUS_REFUSED:
+		return PAYMENT_STATUS_REFUSED
+
+	}
+	return PAYMENT_SATUS_OPEN
 }
 
 func (p *Payment) fromDomain(dP *domain.Payment) {
-	if p == nil {
-		p = &Payment{ID: uuid.New(), CreatedAt: time.Now()}
-	}
+	p.ID = dP.ID
 	p.OrderID = dP.OrderID
-	p.UserID = dP.UserID
 	p.CreatedAt = dP.CreatedAt
-}
+	p.Value = dP.Price
 
-func (p *Payment) newPayment(userID, orderID uuid.UUID) {
-	if p == nil {
-		p = &Payment{ID: uuid.New(), CreatedAt: time.Now()}
+	if !dP.UpdatedAt.IsZero() {
+		p.UpdatedAt = sql.NullTime{
+			Time:  dP.UpdatedAt,
+			Valid: true,
+		}
+	} else {
+		p.UpdatedAt = sql.NullTime{Valid: false}
 	}
-	p.OrderID = orderID
-	p.UserID = userID
-	p.CreatedAt = time.Now()
+
+	var pS PaymentStatus
+	pS = pS.fromDomain(dP.Status)
+	p.Status = pS
 }
 
 func (p *Payment) toDomain() *domain.Payment {
+	var dS domain.PaymentStatus
+	dS = p.Status.toDomain()
 	return &domain.Payment{
 		ID:        p.ID,
 		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt.Time,
+		Price:     p.Value,
 		OrderID:   p.OrderID,
-		UserID:    p.UserID,
+		Status:    dS,
 	}
 }

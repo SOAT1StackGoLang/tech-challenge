@@ -3,10 +3,9 @@
 name: Build and Push
 
 on:
-  push:
-    branches: [ 'develop', 'feat/cicd/*', 'fix/cicd/*' ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -51,6 +50,10 @@ jobs:
   autotest:
     uses: ./.github/workflows/autotest.yml
     needs: build-and-push
+  delivery-fase-2:
+    uses: ./.github/workflows/delivery-fase-2.yml
+    needs: build-and-push
+  
   # snyk:
   #   uses: ./.github/workflows/snyk-security.yml
   #   needs: build-and-push

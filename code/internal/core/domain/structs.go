@@ -29,12 +29,24 @@ type Product struct {
 	Price       decimal.Decimal
 }
 
-func ParseProductToDomain(ID uuid.UUID, categoryID uuid.UUID, createdAt time.Time, updatedAt time.Time, deletedAt time.Time, name string, description string, price string) *Product {
+func ParseProductToDomain(
+	ID uuid.UUID,
+	categoryID uuid.UUID,
+	name string,
+	description string,
+	price string,
+) *Product {
 	p, err := helpers.ParseDecimalFromString(price)
 	if err != nil {
 		return nil
 	}
-	return &Product{ID: ID, CategoryID: categoryID, CreatedAt: createdAt, UpdatedAt: updatedAt, DeletedAt: deletedAt, Name: name, Description: description, Price: p}
+	return &Product{
+		ID:          ID,
+		CategoryID:  categoryID,
+		Name:        name,
+		Description: description,
+		Price:       p,
+	}
 }
 
 func NewProduct(ID uuid.UUID, categoryID uuid.UUID, name string, description string, price string) *Product {
@@ -61,23 +73,19 @@ type ProductsSum struct {
 }
 
 type Order struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	PaymentID   uuid.UUID
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   time.Time
-	Price       decimal.Decimal
-	Status      string
-	ProductsIDs []uuid.UUID
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	PaymentID uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
+	Price     decimal.Decimal
+	Status    OrderStatus
+	Products  []Product
 }
 
-func ParseToDomainOrder(ID uuid.UUID, userID uuid.UUID, paymentID uuid.UUID, price decimal.Decimal, status string, productsIDs []uuid.UUID) *Order {
-	return &Order{ID: ID, UserID: userID, PaymentID: paymentID, Price: price, Status: status, ProductsIDs: productsIDs}
-}
-
-func NewOrder(ID uuid.UUID, userID uuid.UUID, createdAt time.Time, products []uuid.UUID) *Order {
-	return &Order{ID: ID, UserID: userID, CreatedAt: createdAt, ProductsIDs: products}
+func NewOrder(ID uuid.UUID, userID uuid.UUID, createdAt time.Time, products []Product) *Order {
+	return &Order{ID: ID, UserID: userID, CreatedAt: createdAt, Products: products, Status: ORDER_STATUS_OPEN}
 }
 
 type Category struct {
@@ -91,13 +99,60 @@ func NewCategory(ID uuid.UUID, createdAt time.Time, name string) *Category {
 	return &Category{ID: ID, CreatedAt: createdAt, Name: name}
 }
 
+type CategoryList struct {
+	Categories    []*Category
+	Limit, Offset int
+	Total         int64
+}
+
 type Payment struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
+	UpdatedAt time.Time
+	Price     decimal.Decimal
 	OrderID   uuid.UUID
-	UserID    uuid.UUID
+	Status    PaymentStatus
 }
 
-func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, userID uuid.UUID) *Payment {
-	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, UserID: userID}
+func NewPayment(ID uuid.UUID, createdAt time.Time, orderID uuid.UUID, price decimal.Decimal, status PaymentStatus) *Payment {
+	return &Payment{ID: ID, CreatedAt: createdAt, OrderID: orderID, Price: price, Status: status}
+}
+
+type OrderStatus string
+
+const (
+	ORDER_STATUS_UNSET           OrderStatus = ""
+	ORDER_STATUS_OPEN                        = "Aberto"
+	ORDER_STATUS_WAITING_PAYMENT             = "Aguardando Pagamento"
+	ORDER_STATUS_RECEIVED                    = "Recebido"
+	ORDER_STATUS_PREPARING                   = "Em Preparação"
+	ORDER_STATUS_DONE                        = "Pronto"
+	ORDER_STATUS_FINISHED                    = "Finalizado"
+	ORDER_STATUS_CANCELED                    = "Cancelado"
+)
+
+type PaymentStatus string
+
+const (
+	PAYMENT_STATUS_OPEN     PaymentStatus = "Aberto"
+	PAYMENT_STATUS_APPROVED               = "Aprovado"
+	PAYMENT_SATUS_REFUSED                 = "Recusado"
+)
+
+type PaymentStatusNotification struct {
+	PaymentID uuid.UUID
+	OrderID   uuid.UUID
+	Status    PaymentStatus // Can be "approved" or "denied"
+}
+
+var PaymentStatusChannel chan PaymentStatusNotification
+
+func OrderStatusFromNotification(status PaymentStatus) OrderStatus {
+	switch status {
+	case PAYMENT_STATUS_APPROVED:
+		return ORDER_STATUS_RECEIVED
+	case PAYMENT_STATUS_OPEN:
+		return ORDER_STATUS_OPEN
+	}
+	return PAYMENT_SATUS_REFUSED
 }

@@ -2,35 +2,17 @@ package http
 
 import (
 	"context"
-	"net/http"
-	"time"
-
-	"github.com/SOAT1StackGoLang/tech-challenge/helpers"
-	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/domain"
 	"github.com/SOAT1StackGoLang/tech-challenge/internal/core/ports"
 	restfulspec "github.com/emicklei/go-restful-openapi/v2"
 	"github.com/emicklei/go-restful/v3"
 	"github.com/google/uuid"
+	"net/http"
 )
 
-type (
-	CategoriesHttpHandler struct {
-		ctx               context.Context
-		categoriesUseCase ports.CategoriesUseCase
-	}
-
-	InsertionCategory struct {
-		Name   string `json:"name" description:"Nome da categoria de produto"`
-		UserID string `json:"user_id,omitempty" description:"ID do usuario criando categoria"`
-	}
-
-	Category struct {
-		ID        string    `json:"id" description:"ID da categoria de produto"`
-		CreatedAt time.Time `json:"created_at" description:"Epoch time em que categoria foi criada"`
-		UpdatedAt time.Time `json:"updated_at" description:"Epoch time em que categoria foi modificada"`
-		InsertionCategory
-	}
-)
+type CategoriesHttpHandler struct {
+	ctx               context.Context
+	categoriesUseCase ports.CategoriesUseCase
+}
 
 func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.CategoriesUseCase, ws *restful.WebService) *CategoriesHttpHandler {
 	handler := &CategoriesHttpHandler{
@@ -40,7 +22,7 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 
 	tags := []string{"categories"}
 
-	ws.Route(ws.GET("/categories/{id}").To(handler.GetCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+	ws.Route(ws.GET("/categories/{id}").To(handler.handleGetCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Obtém informações sobre categoria de produto").
 		Param(ws.PathParameter("id", "ID da categoria de produto").DataType("string")).
 		Metadata(restfulspec.KeyOpenAPITags, tags).
@@ -48,23 +30,30 @@ func NewCategoriesHttpHandler(ctx context.Context, categoriesUseCase ports.Categ
 		Returns(200, "OK", Category{}).
 		Returns(500, "ID de categoria não cadastrada ou outro erro", nil))
 
-	ws.Route(ws.POST("/categories").To(handler.InsertCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+	ws.Route(ws.POST("/categories").To(handler.handleInsertCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Cadastra categoria de produto").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(InsertionCategory{}). // from the request
 		Returns(200, "Categoria cadastrada", Category{}).
 		Returns(500, "Erro ao cadastrar categoria", nil))
 
-	ws.Route(ws.DELETE("/categories").To(handler.DeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+	ws.Route(ws.DELETE("/categories").To(handler.handleDeleteCategory).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
 		Doc("Remove categoria de produto").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(QueryStruct{}). // from the request
 		Returns(200, "Categoria removida", nil).
 		Returns(500, "Erro ao remover categoria", nil))
+
+	ws.Route(ws.POST("/categories/all").To(handler.handleListCategories).Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON).
+		Doc("Listagem de categorias").
+		Metadata(restfulspec.KeyOpenAPITags, tags).
+		Reads(ListRequest{}).
+		Returns(http.StatusOK, "sucesso", CategoriesList{}).
+		Returns(http.StatusInternalServerError, "falha interna do servidor", nil))
 	return handler
 }
 
-func (cH *CategoriesHttpHandler) GetCategory(request *restful.Request, response *restful.Response) {
+func (cH *CategoriesHttpHandler) handleGetCategory(request *restful.Request, response *restful.Response) {
 	id := request.PathParameter("id")
 
 	uid, err := uuid.Parse(id)
@@ -84,7 +73,7 @@ func (cH *CategoriesHttpHandler) GetCategory(request *restful.Request, response 
 	_ = response.WriteAsJson(cat)
 }
 
-func (cH *CategoriesHttpHandler) InsertCategory(request *restful.Request, response *restful.Response) {
+func (cH *CategoriesHttpHandler) handleInsertCategory(request *restful.Request, response *restful.Response) {
 	var cat Category
 
 	if err := request.ReadEntity(&cat); err != nil {
@@ -107,7 +96,7 @@ func (cH *CategoriesHttpHandler) InsertCategory(request *restful.Request, respon
 	_ = response.WriteAsJson(cat)
 }
 
-func (cH *CategoriesHttpHandler) DeleteCategory(request *restful.Request, response *restful.Response) {
+func (cH *CategoriesHttpHandler) handleDeleteCategory(request *restful.Request, response *restful.Response) {
 	var dS QueryStruct
 
 	if err := request.ReadEntity(&dS); err != nil {
@@ -134,26 +123,31 @@ func (cH *CategoriesHttpHandler) DeleteCategory(request *restful.Request, respon
 	response.WriteHeader(http.StatusOK)
 }
 
-func (c *Category) toDomain() *domain.Category {
-	if c == nil {
-		c = &Category{}
+func (cH *CategoriesHttpHandler) handleListCategories(request *restful.Request, response *restful.Response) {
+	var lR ListRequest
+	if err := request.ReadEntity(&lR); err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
 	}
 
-	return &domain.Category{
-		ID:        helpers.SafeUUIDFromString(c.ID),
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
-		Name:      c.Name,
-	}
-}
-
-func (c *Category) fromDomain(cat *domain.Category) {
-	if c == nil {
-		c = &Category{}
+	uid, err := uuid.Parse(lR.UserID)
+	if err != nil {
+		_ = response.WriteError(http.StatusBadRequest, err)
+		return
 	}
 
-	c.ID = cat.ID.String()
-	c.Name = cat.Name
-	c.CreatedAt = cat.CreatedAt
-	c.UpdatedAt = cat.UpdatedAt
+	list, err := cH.categoriesUseCase.ListCategories(cH.ctx, uid, lR.Limit, lR.Offset)
+
+	var cL CategoriesList
+	var cat Category
+
+	for _, c := range list.Categories {
+		cat.fromDomain(c)
+		cL.Categories = append(cL.Categories, cat)
+	}
+	cL.Total = list.Total
+	cL.Limit = list.Limit
+	cL.Offset = list.Offset
+
+	_ = response.WriteAsJson(cL)
 }

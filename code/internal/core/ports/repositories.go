@@ -27,10 +27,12 @@ type CategoriesRepository interface {
 	InsertCategory(ctx context.Context, in *domain.Category) (*domain.Category, error)
 	GetCategoryByID(ctx context.Context, id uuid.UUID) (*domain.Category, error)
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
+	ListCategories(ctx context.Context, limit int, offset int) (*domain.CategoryList, error)
 }
 
 type OrdersRepository interface {
 	GetOrder(ctx context.Context, orderID uuid.UUID) (*domain.Order, error)
+	GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error)
 	CreateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
 	UpdateOrder(ctx context.Context, order *domain.Order) (*domain.Order, error)
 	DeleteOrder(ctx context.Context, orderID uuid.UUID) error
@@ -40,5 +42,7 @@ type OrdersRepository interface {
 }
 
 type PaymentRepository interface {
-	PayOrder(ctx context.Context, payment *domain.Payment) (*domain.Payment, error)
+	CreatePayment(ctx context.Context, payment *domain.Payment) (*domain.Payment, error)
+	GetPayment(ctx context.Context, paymentID uuid.UUID) (*domain.Payment, error)
+	UpdatePayment(ctx context.Context, payment *domain.Payment) (*domain.Payment, error)
 }

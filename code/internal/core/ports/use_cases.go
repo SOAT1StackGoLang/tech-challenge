@@ -26,18 +26,23 @@ type CategoriesUseCase interface {
 	GetCategory(ctx context.Context, id uuid.UUID) (*domain.Category, error)
 	InsertCategory(ctx context.Context, userID uuid.UUID, in *domain.Category) (*domain.Category, error)
 	DeleteCategory(ctx context.Context, userID, id uuid.UUID) error
+	ListCategories(ctx context.Context, userID uuid.UUID, limit, offset int) (*domain.CategoryList, error)
 }
 
 type OrdersUseCase interface {
 	GetOrder(ctx context.Context, userID, orderID uuid.UUID) (*domain.Order, error)
-	CreateOrder(ctx context.Context, userID uuid.UUID, products []uuid.UUID) (*domain.Order, error)
-	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (*domain.Order, error)
-	RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []uuid.UUID) (*domain.Order, error)
+	GetOrderByPaymentID(ctx context.Context, paymentID uuid.UUID) (*domain.Order, error)
+	CreateOrder(ctx context.Context, userID uuid.UUID, products []domain.Product) (*domain.Order, error)
+	InsertProductsIntoOrder(ctx context.Context, userID, orderID uuid.UUID, products []domain.Product) (*domain.Order, error)
+	RemoveProductFromOrder(ctx context.Context, userID, orderID uuid.UUID, products []domain.Product) (*domain.Order, error)
 	DeleteOrder(ctx context.Context, userID, orderID uuid.UUID) error
-	SetOrderAsPaid(ctx context.Context, payment *domain.Payment) error
 	ListOrders(ctx context.Context, limit, offset int, userID uuid.UUID) (*domain.OrderList, error)
+	Checkout(ctx context.Context, userID, paymentID uuid.UUID) (*domain.Order, error)
+	UpdateOrderStatus(ctx context.Context, userID, orderID uuid.UUID, status domain.OrderStatus) (*domain.Order, error)
 }
 
 type PaymentUseCase interface {
-	PayOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Payment, error)
+	GetPayment(ctx context.Context, paymentID uuid.UUID) (*domain.Payment, error)
+	CreatePayment(ctx context.Context, orderID *domain.Order) (*domain.Payment, error)
+	UpdatePayment(ctx context.Context, paymentID uuid.UUID, status domain.PaymentStatus) (*domain.Payment, error)
 }
