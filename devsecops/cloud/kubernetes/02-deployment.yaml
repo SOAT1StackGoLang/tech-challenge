@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tech-challenge
-  namespace: tech-challenge-lucas
+  namespace: tech-challenge-testing
   labels:
     app: tech-challenge
 spec:
