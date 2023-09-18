@@ -27,7 +27,7 @@ jobs:
       FORCE_COLOR: 1
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: benjlevesque/short-sha@v2.2
         id: short-sha
@@ -112,7 +112,7 @@ jobs:
       packages: write # for aquasecurity/trivy-action to pull the image from the GitHub Container Registry
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@master
