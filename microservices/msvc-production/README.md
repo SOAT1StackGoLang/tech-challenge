@@ -1,2 +1,0 @@
-# mscv-production
-Microservice Production

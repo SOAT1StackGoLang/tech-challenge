@@ -1,2 +1,0 @@
-# msvc-payments
-Microservice payments
