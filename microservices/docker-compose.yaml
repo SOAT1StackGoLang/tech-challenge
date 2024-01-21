@@ -5,8 +5,9 @@ services:
     ports:
       - 8080:8080
     environment:
-      DB_URI: postgres://postgres:postgres@db:5432/postgres?sslmode=disable
-      REDIS_URI: redis://:@redis:6379/0
+      DB_URI: postgres://postgres:postgres@db:5432/orders?sslmode=disable
+      KVSTORE_URI: microservices_redis_1:6379
+      KVSTORE_DB: 10 # 0-15 are available for use in Redis by default, this is for isolation between services
       ORDER_URI: http://msvc-orders:8080
       PAYMENT_URI: http://msvc-payments:8081
       PRODUCTION_URI: http://msvc-production:8082
@@ -21,8 +22,9 @@ services:
     ports:
       - 8081:8080
     environment:
-      DB_URI: postgres://postgres:postgres@db:5432/postgres?sslmode=disable
-      REDIS_URI: redis://:@redis:6379/0
+      # DB_URI: postgres://postgres:postgres@db:5432/payments?sslmode=disable
+      KVSTORE_URI: microservices_redis_1:6379
+      KVSTORE_DB: 11 # 0-15 are available for use in Redis by default, this is for isolation between services
       ORDER_URI: http://msvc-orders:8080
       PAYMENT_URI: http://msvc-payments:8081
       PRODUCTION_URI: http://msvc-production:8082
@@ -37,8 +39,9 @@ services:
     ports:
       - 8082:8080
     environment:
-      DB_URI: postgres://postgres:postgres@db:5432/postgres?sslmode=disable
-      REDIS_URI: redis://:@redis:6379/0
+      # DB_URI: postgres://postgres:postgres@db:5432/production?sslmode=disable
+      KVSTORE_URI: microservices_redis_1:6379
+      KVSTORE_DB: 12 # 0-15 are available for use in Redis by default, this is for isolation between services
       ORDER_URI: http://msvc-orders:8080
       PAYMENT_URI: http://msvc-payments:8081
       PRODUCTION_URI: http://msvc-production:8082
