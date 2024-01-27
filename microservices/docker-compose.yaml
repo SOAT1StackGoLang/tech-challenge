@@ -1,4 +1,5 @@
 # FILEPATH: /opt/fiap/tech-challenge/microservices/docker-compose.yaml
+## how to run podman-compose build --build-arg GITHUB_ACCESS_TOKEN=your_token
 
 version: '3'
 
