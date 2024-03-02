@@ -13,7 +13,7 @@ services:
       - 8080:8080
     environment:
       # Database connection URI # check the initidb folder for more db information
-      DB_URI: postgres://msvc_orders:msvc_orders@microservices_db_1:5432/orders?sslmode=disable
+      DB_URI: postgres://postgres:postgres@microservices_db_1:5432/msvc_orders?sslmode=disable
       # Key-value store connection URI
       KVSTORE_URI: microservices_redis_1:6379
       # Key-value store database number for isolation
@@ -32,6 +32,7 @@ services:
     # Specifies the network that this service should be connected to.
     networks:
       - msvc-network
+
 
   msvc-payments:
     build: ./msvc-payments
@@ -99,3 +100,4 @@ volumes:
 networks:
   msvc-network:
     driver: bridge
+  

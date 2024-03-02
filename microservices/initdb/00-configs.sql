@@ -21,9 +21,14 @@ CREATE USER msvc_orders WITH PASSWORD 'msvc_orders';
 CREATE USER msvc_production WITH PASSWORD 'msvc_production';
 CREATE USER msvc_payments WITH PASSWORD 'msvc_payments';
 
--- Create databases and give permission for msvc-orders, msvc-production, msvc-payments
+-- Create databases and give permission for msvc-orders(this will be the schema migrator must be admin), msvc-production, msvc-payments
 CREATE DATABASE msvc_orders;
+-- Grant admin permission to the database on msvc_orders and public schema
 GRANT ALL PRIVILEGES ON DATABASE msvc_orders TO msvc_orders;
+GRANT ALL PRIVILEGES ON SCHEMA public TO msvc_orders;
+
+
+
 CREATE DATABASE msvc_production;
 GRANT ALL PRIVILEGES ON DATABASE msvc_production TO msvc_production;
 CREATE DATABASE msvc_payments;
