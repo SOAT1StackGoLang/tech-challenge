@@ -1,0 +1,103 @@
+# FILEPATH: /opt/fiap/tech-challenge/microservices/docker-compose.yaml
+## how to run podman-compose build --build-arg GITHUB_ACCESS_TOKEN=your_token
+
+version: '3'
+
+services:
+  # FILEPATH: /opt/fiap/tech-challenge/microservices/docker-compose.yaml
+
+  # Service for managing orders
+  msvc-orders:
+    build: ./msvc-orders
+    ports:
+      - 8080:8080
+    environment:
+      # Database connection URI # check the initidb folder for more db information
+      DB_URI: postgres://postgres:postgres@microservices_db_1:5432/msvc_orders?sslmode=disable
+      # Key-value store connection URI
+      KVSTORE_URI: microservices_redis_1:6379
+      # Key-value store database number for isolation
+      KVSTORE_DB: 10
+      # URI for accessing the order service
+      ORDER_URI: http://msvc-orders:8080
+      # URI for accessing the payment service
+      PAYMENT_URI: http://msvc-payments:8081
+      # URI for accessing the production service
+      PRODUCTION_URI: http://msvc-production:8082
+    # Specifies the services that this service depends on.
+    depends_on:
+      - db
+      - redis
+
+    # Specifies the network that this service should be connected to.
+    networks:
+      - msvc-network
+
+
+  msvc-payments:
+    build: ./msvc-payments
+    ports:
+      - 8081:8080
+    environment:
+      # check the initidb folder for more db information
+      DB_URI: postgres://msvc_payments:msvc_payments@microservices_db_1:5432/payments?sslmode=disable
+      KVSTORE_URI: microservices_redis_1:6379
+      KVSTORE_DB: 11 # 0-15 are available for use in Redis by default, this is for isolation between services
+      ORDER_URI: http://msvc-orders:8080
+      PAYMENT_URI: http://msvc-payments:8081
+      PRODUCTION_URI: http://msvc-production:8082
+    depends_on:
+      - db
+      - redis
+    networks:
+      - msvc-network
+
+  msvc-production:
+    build: ./msvc-production
+    ports:
+      - 8082:8080
+    environment:
+      # check the initidb folder for more db information
+      DB_URI: postgres://msvc_production:msvc_production@microservices_db_1:5432/production?sslmode=disable
+      KVSTORE_URI: microservices_redis_1:6379
+      KVSTORE_DB: 12 # 0-15 are available for use in Redis by default, this is for isolation between services
+      ORDER_URI: http://msvc-orders:8080
+      PAYMENT_URI: http://msvc-payments:8081
+      PRODUCTION_URI: http://msvc-production:8082
+    depends_on:
+      - db
+      - redis
+    networks:
+      - msvc-network
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./initdb/:/docker-entrypoint-initdb.d/
+    ports:
+      - 5432:5432
+    networks:
+      - msvc-network
+
+  redis:
+    image: redis:latest
+    volumes:
+      - redis_data:/data
+    networks:
+      - msvc-network
+    ports:
+      - 6379:6379
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  msvc-network:
+    driver: bridge
+  
