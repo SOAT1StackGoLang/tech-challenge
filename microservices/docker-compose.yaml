@@ -17,13 +17,13 @@ services:
       # Key-value store connection URI
       KVSTORE_URI: microservices_redis_1:6379
       # Key-value store database number for isolation
-      KVSTORE_DB: 10
+      KVSTORE_DB: 0
       # URI for accessing the order service
       ORDER_URI: http://msvc-orders:8080
       # URI for accessing the payment service
-      PAYMENT_URI: http://msvc-payments:8081
+      PAYMENT_URI: http://msvc-payments:8080
       # URI for accessing the production service
-      PRODUCTION_URI: http://msvc-production:8082
+      PRODUCTION_URI: http://msvc-production:8080
     # Specifies the services that this service depends on.
     depends_on:
       - db
@@ -42,10 +42,10 @@ services:
       # check the initidb folder for more db information
       DB_URI: postgres://msvc_payments:msvc_payments@microservices_db_1:5432/payments?sslmode=disable
       KVSTORE_URI: microservices_redis_1:6379
-      KVSTORE_DB: 11 # 0-15 are available for use in Redis by default, this is for isolation between services
+      KVSTORE_DB: 0 # 0-15 are available for use in Redis by default, this is for isolation between services
       ORDER_URI: http://msvc-orders:8080
-      PAYMENT_URI: http://msvc-payments:8081
-      PRODUCTION_URI: http://msvc-production:8082
+      PAYMENT_URI: http://msvc-payments:8080
+      PRODUCTION_URI: http://msvc-production:8080
     depends_on:
       - db
       - redis
@@ -60,10 +60,10 @@ services:
       # check the initidb folder for more db information
       DB_URI: postgres://msvc_production:msvc_production@microservices_db_1:5432/production?sslmode=disable
       KVSTORE_URI: microservices_redis_1:6379
-      KVSTORE_DB: 12 # 0-15 are available for use in Redis by default, this is for isolation between services
+      KVSTORE_DB: 0 # 0-15 are available for use in Redis by default, this is for isolation between services
       ORDER_URI: http://msvc-orders:8080
-      PAYMENT_URI: http://msvc-payments:8081
-      PRODUCTION_URI: http://msvc-production:8082
+      PAYMENT_URI: http://msvc-payments:8080
+      PRODUCTION_URI: http://msvc-production:8080
     depends_on:
       - db
       - redis
