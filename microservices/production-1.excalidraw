@@ -944,8 +944,8 @@
     },
     {
       "type": "text",
-      "version": 190,
-      "versionNonce": 1218665023,
+      "version": 191,
+      "versionNonce": 899515345,
       "isDeleted": false,
       "id": "YxiVUGEOBBe0_rQeisy7r",
       "fillStyle": "solid",
@@ -958,14 +958,14 @@
       "y": 0.8999999999998636,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
-      "width": 210.62499999999955,
-      "height": 35.94666666666658,
+      "width": 210.498046875,
+      "height": 35.94666666666657,
       "seed": 1268309233,
       "groupIds": [],
       "frameId": null,
       "roundness": null,
       "boundElements": [],
-      "updated": 1710196591929,
+      "updated": 1710289794243,
       "link": null,
       "locked": false,
       "fontSize": 29.955555555555478,
@@ -976,7 +976,7 @@
       "containerId": null,
       "originalText": "3. publish()",
       "lineHeight": 1.2,
-      "baseline": 28.000000000000007
+      "baseline": 28
     },
     {
       "type": "diamond",
