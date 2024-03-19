@@ -29,7 +29,13 @@ Lambda de Autorização: <https://github.com/SOAT1StackGoLang/oAuth2Authorizer>
 
 Check the [Microservices Readme](./README.md)
 
-## How to Run (Using AWSAcademy Account)
+## Cloud
+
+### Diagram
+
+![Diagram](<Diagrama de Infraestrutura.png>)
+
+### How to Run (Using AWSAcademy Account)
 
 First clone the repository TechChallenge-IaaC-EKS and follow the instructions to create the EKS cluster.
 
@@ -83,6 +89,10 @@ Now lets create the infrastructure using github actions.
 It will take some time to create the infrastructure, after that you can check the EKS cluster and the services running, if you see some Server Unaviaible, wait a little bit more, the services are starting, and run again the workflow to validate, somethimes the services are not ready when the validation is running by AWSAcademy.
 
 ![GHActions3](./docs/GHActions3.png)
+
+1. Success Message
+2. Swagger URLs
+3. API Gateway and Cognitive URLs to be used on the verify.sh script
 
 To get the a fresh token from the cognito, you can run the verify.sh script, it will show the values to be used in the Swagger Authorization.
 
