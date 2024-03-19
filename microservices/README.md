@@ -1,4 +1,11 @@
+
 # Microservices Project
+
+## Delivery Fase 5
+
+The documentation for the Delivery of the Fase 5 of the Tech Challenge [microservices](./DELIVERY.md)
+
+## Overview
 
 This project consists of three microservices: `msvc-orders`, `msvc-payments`, and `msvc-production`. These services are orchestrated using Docker Compose for local development and kubernetes for the production.
 
@@ -24,10 +31,21 @@ This service is responsible for managing production. It exposes its API on port 
 4. Run the following command to build and start the services:
 
 ```bash
-docker-compose build --build-arg GITHUB_ACCESS_TOKEN=your_token
+# if the project public
+docker-compose build 
+# if the project is private
+docker-compose build  --build-arg GITHUB_ACCESS_TOKEN=your_token
 ```
 
-Replace `your_token` with your actual GitHub access token.
+Replace `your_token` with your actual GitHub access token if the project is private.
+
+if you want to update the gitsubmodules, you can run the following command:
+
+```bash
+git submodule update --init --recursive
+# run the custom script
+./gitupdate.sh
+```
 
 ## Troubleshooting
 
