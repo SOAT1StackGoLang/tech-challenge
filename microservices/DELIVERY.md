@@ -3,27 +3,76 @@
 
 ## Delivery Fase 5
 
+Turma 1SOAT - Tech Challenge
+
+Members:
+
+- George Baronheid
+- Lucas Arruda
+- Murillo de Morais
+- Ana Lúcia de Faria
+
+## Table of Contents
+
+1. [Links](#links)
+2. [Videos](#videos)
+3. [SAGA Pattern](#saga-pattern)
+4. [OWASP ZAP Reports](#owasp-zap-reports)
+5. [RIPD System Report](#ripd-system-report)
+6. [For development and testing locally](#for-development-and-testing-locally)
+7. [Cloud](#cloud)
+    - [Diagram](#diagram)
+    - [How to Run (Using AWSAcademy Account)](#how-to-run-using-awsacademy-account)
+
 ## Links
 
 Main repo: <https://github.com/SOAT1StackGoLang/tech-challenge>
 
-Microserviço orders: <https://github.com/SOAT1StackGoLang/msvc-orders>
+Microservice orders: <https://github.com/SOAT1StackGoLang/msvc-orders>
 
-Microserviço payments: <https://github.com/SOAT1StackGoLang/msvc-payments>
+Microservice payments: <https://github.com/SOAT1StackGoLang/msvc-payments>
 
-Microserviço production: <https://github.com/SOAT1StackGoLang/msvc-production>
+Microservice production: <https://github.com/SOAT1StackGoLang/msvc-production>
 
-Infra via Terraform: <https://github.com/SOAT1StackGoLang/TechChallenge-IaaC-EKS>
+Infra Terraform: <https://github.com/SOAT1StackGoLang/TechChallenge-IaaC-EKS>
 
-Lambda de Autorização: <https://github.com/SOAT1StackGoLang/oAuth2Authorizer>
+Lambda Authorizer: <https://github.com/SOAT1StackGoLang/oAuth2Authorizer>
 
-## Videos Link
+## Videos
 
 [Saga Video](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
 
 [User Flow Video](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
 
 [Cloud Video](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
+
+## SAGA Pattern
+
+Explanation of the chosen SAGA pattern and its justification.
+
+[SAGA Explanation](https://github.com/SOAT1StackGoLang/msvc-orders/blob/main/SAGA.md)
+
+[Saga Video](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
+
+Checkout Flow Diagram:
+
+[Excalidraw-1](./docs/checkout-1.excalidraw)
+
+[Excalidraw-2](./docs/checkout-2.excalidraw)
+
+Production Flow Diagram.
+
+[Excalidraw](./docs/production-1.excalidraw)
+
+## OWASP ZAP Reports
+
+Zap reports are located in orders microservice, with the explanations [Zap Reports](https://github.com/SOAT1StackGoLang/msvc-orders/blob/main/owasp/README.md)
+
+Save the report html files and open in the browser for a better experience.
+
+## RIPD System Report
+
+The report is located in the docs folder, [RIPD System Report](./docs/RIPD-TechChallenge-Fase5.pdf)
 
 ## For development and testing locally
 
@@ -108,32 +157,6 @@ cognito_url="https://techchallenge-dev.auth.us-east-1.amazoncognito.com"
 cognito_userpool_id="us-east-1_jSj8VLYaM"
 ```
 
-For more information, see readme from the Infra EKS Terraform[README.md](https://github.com/SOAT1StackGoLang/TechChallenge-IaaC-EKS/blob/5d45226a6e28f66c3bc2e2da8e7f8770ec0bf8d6/README.md).
+For more information, see readme from the Infra EKS Terraform
 
-## SAGA Pattern
-
-Explanation of the chosen SAGA pattern and its justification.
-
-[SAGA Explanation](https://github.com/SOAT1StackGoLang/msvc-orders/blob/main/SAGA.md)
-
-[Saga Video](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
-
-Checkout Flow Diagram.
-![Checkout1](./docs/checkout-1.png)
-[Excalidraw](./docs/checkout-1.excalidraw)
-![Checkout2](./docs/checkout-2.png)
-[Excalidraw](./docs/checkout-2.excalidraw)
-
-Production Flow Diagram.
-![Production1](./docs/production-1.png)
-[Excalidraw](./docs/production-1.excalidraw)
-
-## OWASP ZAP Reports
-
-Zap reports are located in orders microservice, with the explanations [Zap Reports](https://github.com/SOAT1StackGoLang/msvc-orders/blob/main/owasp/README.md)
-
-Save the report html files and open in the browser for a better experience.
-
-## RIPD System Report
-
-The report is located in the docs folder, [RIPD System Report](./docs/RIPD-TechChallenge-Fase5.pdf)
+[Infra EKS Terraform](https://github.com/SOAT1StackGoLang/TechChallenge-IaaC-EKS)
