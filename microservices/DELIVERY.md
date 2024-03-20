@@ -40,11 +40,17 @@ Lambda Authorizer: <https://github.com/SOAT1StackGoLang/oAuth2Authorizer>
 
 ## Videos
 
-[Saga Video](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
+1. [Saga Video (15 min)](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
 
-[User Flow Video](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
+2. [User Flow Video (03 min)](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
 
-[Cloud Video](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
+Cloud Videos
+
+3. [CI/CD and Cloud/App Demo (40 min)](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
+
+4. [Short Version Cloud/App Demo only (15 min)](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
+
+![alt text](./docs/Videos.png)
 
 ## SAGA Pattern
 
@@ -160,3 +166,9 @@ cognito_userpool_id="us-east-1_jSj8VLYaM"
 For more information, see readme from the Infra EKS Terraform
 
 [Infra EKS Terraform](https://github.com/SOAT1StackGoLang/TechChallenge-IaaC-EKS)
+
+The End!
+
+## License
+
+[MIT](../LICENSE)
