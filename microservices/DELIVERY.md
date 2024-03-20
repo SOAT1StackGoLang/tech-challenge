@@ -48,7 +48,7 @@ Cloud Videos
 
 3. [CI/CD and Cloud/App Demo (40 min)](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
 
-4. [Short Version Cloud/App Demo only (15 min)](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
+4. [Short Version Cloud/App Demo Only (15 min)](https://1drv.ms/f/s!AgAxf_qsrSnhhoBoyTNXHV5IvPHfdA?e=vSxalm)
 
 ![alt text](./docs/Videos.png)
 
