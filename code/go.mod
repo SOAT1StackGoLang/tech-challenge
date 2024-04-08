@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Boostport/migration v1.1.2
 	github.com/Boostport/migration/driver/postgres v1.1.3
-	github.com/emicklei/go-restful-openapi/v2 v2.9.1
+	github.com/emicklei/go-restful-openapi/v2 v2.10.2
 	github.com/emicklei/go-restful/v3 v3.12.0
 	github.com/go-openapi/spec v0.21.0
 	github.com/google/uuid v1.6.0
